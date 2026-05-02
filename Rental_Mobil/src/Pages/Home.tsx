@@ -1,4 +1,45 @@
+import { useState, useEffect } from "react";
+import { useNavigate} from "react-router-dom";  
+
+const cars = [
+  {
+    name: "Toyota Innova",
+    type: "MPV Premium",
+    image: "/src/assets/innova.jpeg",
+    seats: 7,
+    price: "Rp 450.000",
+  },
+  {
+    name: "Toyota Avanza",
+    type: "MPV Keluarga",
+    image: "/src/assets/avanza.png",
+    seats: 7,
+    price: "Rp 300.000",
+  },
+];
+
 export default function Home() {
+  const navigate = useNavigate();
+  const [current, setCurrent] = useState(0);
+  const [animating, setAnimating] = useState(false);
+
+useEffect(() => {
+  const timer = setInterval(() => {
+    setCurrent((prev) => (prev + 1) % cars.length);
+  }, 4000);
+  return () => clearInterval(timer);
+}, []);
+
+function goTo(index: number) {
+  setAnimating(true);
+  setTimeout(() => {
+    setCurrent(index);
+    setAnimating(false);
+  }, 300);
+}
+
+  const car = cars[current];
+
   return (
     <>
       <style>{`
@@ -11,7 +52,6 @@ export default function Home() {
           padding-top: 64px;
         }
 
-        /* HERO */
         .hero {
           min-height: calc(100vh - 64px);
           display: flex;
@@ -25,10 +65,8 @@ export default function Home() {
         .hero::before {
           content: '';
           position: absolute;
-          top: -120px;
-          right: -120px;
-          width: 520px;
-          height: 520px;
+          top: -120px; right: -120px;
+          width: 520px; height: 520px;
           background: radial-gradient(circle, rgba(59,95,212,0.08) 0%, transparent 70%);
           pointer-events: none;
         }
@@ -36,15 +74,12 @@ export default function Home() {
         .hero::after {
           content: '';
           position: absolute;
-          bottom: -80px;
-          left: -80px;
-          width: 400px;
-          height: 400px;
+          bottom: -80px; left: -80px;
+          width: 400px; height: 400px;
           background: radial-gradient(circle, rgba(192,57,43,0.06) 0%, transparent 70%);
           pointer-events: none;
         }
 
-        /* LEFT - Foto Mobil */
         .hero-image-wrap {
           flex: 1.1;
           position: relative;
@@ -66,35 +101,23 @@ export default function Home() {
           box-shadow: 0 24px 64px rgba(26,63,168,0.12);
         }
 
-        .hero-image-card::before {
-          content: '';
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(135deg, rgba(26,63,168,0.04) 0%, rgba(139,60,196,0.04) 50%, rgba(192,57,43,0.04) 100%);
+        .hero-car-img {
+          width: 88%;
+          height: 88%;
+          object-fit: contain;
+          transition: opacity 0.3s ease, transform 0.3s ease;
+          position: relative;
+          z-index: 1;
         }
 
-        .hero-car-icon {
-          width: 180px;
-          height: 180px;
-          opacity: 0.25;
-        }
-
-        .hero-placeholder-text {
-          position: absolute;
-          bottom: 1.5rem;
-          left: 50%;
-          transform: translateX(-50%);
-          font-size: 12px;
-          color: rgba(26,63,168,0.4);
-          letter-spacing: 0.08em;
-          text-transform: uppercase;
-          white-space: nowrap;
+        .hero-car-img.animating {
+          opacity: 0;
+          transform: scale(0.95) translateX(20px);
         }
 
         .hero-badge {
           position: absolute;
-          top: 1.25rem;
-          left: 1.25rem;
+          top: 1.25rem; left: 1.25rem;
           background: linear-gradient(135deg, #1a3fa8, #8b3cc4);
           color: #fff;
           font-size: 11px;
@@ -103,12 +126,61 @@ export default function Home() {
           border-radius: 20px;
           letter-spacing: 0.04em;
           text-transform: uppercase;
+          z-index: 2;
+        }
+
+        .hero-car-name {
+          position: absolute;
+          bottom: 1.25rem; left: 1.25rem; right: 1.25rem;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          z-index: 2;
+        }
+
+        .hero-car-name-text {
+          background: rgba(255,255,255,0.85);
+          backdrop-filter: blur(8px);
+          border-radius: 10px;
+          padding: 8px 14px;
+        }
+
+        .hero-car-name-text strong {
+          display: block;
+          font-size: 14px;
+          font-weight: 700;
+          color: #1a1a2e;
+        }
+
+        .hero-car-name-text span {
+          font-size: 11px;
+          color: #888;
+        }
+
+        .hero-dots {
+          display: flex;
+          gap: 6px;
+          align-items: center;
+        }
+
+        .hero-dot {
+          width: 8px; height: 8px;
+          border-radius: 50%;
+          background: rgba(26,63,168,0.2);
+          border: none;
+          cursor: pointer;
+          transition: background 0.2s, transform 0.2s;
+          padding: 0;
+        }
+
+        .hero-dot.active {
+          background: #1a3fa8;
+          transform: scale(1.3);
         }
 
         .hero-floating-card {
           position: absolute;
-          bottom: -16px;
-          right: -16px;
+          bottom: -16px; right: -16px;
           background: #fff;
           border-radius: 16px;
           padding: 14px 18px;
@@ -116,11 +188,11 @@ export default function Home() {
           display: flex;
           align-items: center;
           gap: 10px;
+          z-index: 3;
         }
 
         .hero-floating-icon {
-          width: 36px;
-          height: 36px;
+          width: 36px; height: 36px;
           background: linear-gradient(135deg, #1a3fa8, #8b3cc4);
           border-radius: 10px;
           display: flex;
@@ -128,19 +200,9 @@ export default function Home() {
           justify-content: center;
         }
 
-        .hero-floating-text p {
-          font-size: 11px;
-          color: #888;
-          margin: 0;
-        }
+        .hero-floating-text p { font-size: 11px; color: #888; margin: 0; }
+        .hero-floating-text strong { font-size: 14px; color: #1a1a2e; font-weight: 700; }
 
-        .hero-floating-text strong {
-          font-size: 14px;
-          color: #1a1a2e;
-          font-weight: 700;
-        }
-
-        /* RIGHT - Deskripsi */
         .hero-content {
           flex: 1;
           display: flex;
@@ -165,8 +227,7 @@ export default function Home() {
         }
 
         .hero-label span {
-          width: 6px;
-          height: 6px;
+          width: 6px; height: 6px;
           background: #1a3fa8;
           border-radius: 50%;
           display: inline-block;
@@ -214,11 +275,7 @@ export default function Home() {
           letter-spacing: -0.02em;
         }
 
-        .hero-stat span {
-          font-size: 12px;
-          color: #888;
-          font-weight: 500;
-        }
+        .hero-stat span { font-size: 12px; color: #888; font-weight: 500; }
 
         .hero-stat-divider {
           width: 1px;
@@ -252,10 +309,6 @@ export default function Home() {
           box-shadow: 0 8px 28px rgba(26,63,168,0.35);
         }
 
-        .btn-primary:active {
-          transform: translateY(0);
-        }
-
         .btn-secondary {
           background: transparent;
           color: #1a3fa8;
@@ -275,7 +328,6 @@ export default function Home() {
           transform: translateY(-1px);
         }
 
-        /* FEATURES */
         .features {
           padding: 5rem 6rem;
           display: grid;
@@ -297,8 +349,7 @@ export default function Home() {
         }
 
         .feature-icon {
-          width: 48px;
-          height: 48px;
+          width: 48px; height: 48px;
           border-radius: 14px;
           display: flex;
           align-items: center;
@@ -329,18 +380,32 @@ export default function Home() {
       `}</style>
 
       <div className="home">
-        {/* HERO */}
         <section className="hero">
-          {/* Kiri - Foto Mobil */}
           <div className="hero-image-wrap">
             <div className="hero-image-card">
-              <svg className="hero-car-icon" viewBox="0 0 24 24" fill="#1a3fa8">
-                <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
-              </svg>
-              <p className="hero-placeholder-text">Foto mobil akan ditampilkan di sini</p>
+              <div className="hero-badge">Armada Terbaik</div>
+              <img
+                src={car.image}
+                alt={car.name}
+                className={`hero-car-img${animating ? " animating" : ""}`}
+              />
+              <div className="hero-car-name">
+                <div className="hero-car-name-text">
+                  <strong>{car.name}</strong>
+                  <span>{car.type} · {car.seats} Kursi · {car.price}/hari</span>
+                </div>
+                <div className="hero-dots">
+                  {cars.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`hero-dot${current === i ? " active" : ""}`}
+                      onClick={() => goTo(i)}
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
 
-            {/* Floating card */}
             <div className="hero-floating-card">
               <div className="hero-floating-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
@@ -354,7 +419,6 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Kanan - Deskripsi */}
           <div className="hero-content">
             <div className="hero-label">
               <span></span>
@@ -391,12 +455,13 @@ export default function Home() {
 
             <div className="hero-actions">
               <button className="btn-primary">Sewa Sekarang</button>
-              <button className="btn-secondary">Lihat Armada</button>
+              <button className="btn-secondary" onClick={() => navigate("/daftar-mobil")}>
+                Lihat Armada
+              </button>
             </div>
           </div>
         </section>
 
-        {/* FEATURES */}
         <section className="features">
           <div className="feature-card">
             <div className="feature-icon" style={{ background: "rgba(26,63,168,0.08)" }}>🚗</div>

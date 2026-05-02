@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
 
+import { Link, useLocation } from "react-router-dom";
+
 const navLinks = [
-  { label: "Home", href: "#" },
-  { label: "Daftar Mobil", href: "#" },
-  { label: "Pesan", href: "#" },
+  { label: "Home", href: "/" },
+  { label: "Daftar Mobil", href: "/daftar-mobil" },
+  { label: "Pesan", href: "/pesan" },
 ];
 
 export default function Navbar() {
+  const location = useLocation();
   const [active, setActive] = useState("Home");
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -306,24 +309,24 @@ export default function Navbar() {
       `}</style>
 
       <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
-        <a className="navbar-logo" href="#">
+        <Link className="navbar-logo" to="/">
           <img src="/src/assets/LOGO_PPS.jpeg" alt="Logo PPS" className="navbar-logo-img" />
           <div className="navbar-logo-text">
             <span className="navbar-logo-title">PPS</span>
             <span className="navbar-logo-sub">Rental Car Indonesia</span>
           </div>
-        </a>
+        </Link>
 
         <div className="navbar-right">
           <div className="navbar-links">
             {navLinks.map((link) => (
-              <button
-                key={link.label}
-                className={`navbar-link${active === link.label ? " active" : ""}`}
-                onClick={() => setActive(link.label)}
-              >
-                {link.label}
-              </button>
+<Link
+  key={link.label}
+  to={link.href}
+  className={`navbar-link${location.pathname === link.href ? " active" : ""}`}
+>
+  {link.label}
+</Link>
             ))}
           </div>
           <div className="navbar-divider" />
