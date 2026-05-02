@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate} from "react-router-dom";  
+import { useNavigate } from "react-router-dom";
 
 const cars = [
   {
@@ -23,20 +23,20 @@ export default function Home() {
   const [current, setCurrent] = useState(0);
   const [animating, setAnimating] = useState(false);
 
-useEffect(() => {
-  const timer = setInterval(() => {
-    setCurrent((prev) => (prev + 1) % cars.length);
-  }, 4000);
-  return () => clearInterval(timer);
-}, []);
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrent((prev) => (prev + 1) % cars.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
-function goTo(index: number) {
-  setAnimating(true);
-  setTimeout(() => {
-    setCurrent(index);
-    setAnimating(false);
-  }, 300);
-}
+  function goTo(index: number) {
+    setAnimating(true);
+    setTimeout(() => {
+      setCurrent(index);
+      setAnimating(false);
+    }, 300);
+  }
 
   const car = cars[current];
 
@@ -136,6 +136,7 @@ function goTo(index: number) {
           align-items: center;
           justify-content: space-between;
           z-index: 2;
+          gap: 8px;
         }
 
         .hero-car-name-text {
@@ -157,6 +158,29 @@ function goTo(index: number) {
           color: #888;
         }
 
+        .hero-floating-card {
+          background: rgba(255,255,255,0.85);
+          backdrop-filter: blur(8px);
+          border-radius: 10px;
+          padding: 8px 14px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .hero-floating-icon {
+          width: 28px; height: 28px;
+          background: linear-gradient(135deg, #1a3fa8, #8b3cc4);
+          border-radius: 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-shrink: 0;
+        }
+
+        .hero-floating-text p { font-size: 10px; color: #888; margin: 0; }
+        .hero-floating-text strong { font-size: 12px; color: #1a1a2e; font-weight: 700; }
+
         .hero-dots {
           display: flex;
           gap: 6px;
@@ -177,31 +201,6 @@ function goTo(index: number) {
           background: #1a3fa8;
           transform: scale(1.3);
         }
-
-        .hero-floating-card {
-          position: absolute;
-          bottom: -16px; right: -16px;
-          background: #fff;
-          border-radius: 16px;
-          padding: 14px 18px;
-          box-shadow: 0 8px 32px rgba(26,63,168,0.14);
-          display: flex;
-          align-items: center;
-          gap: 10px;
-          z-index: 3;
-        }
-
-        .hero-floating-icon {
-          width: 36px; height: 36px;
-          background: linear-gradient(135deg, #1a3fa8, #8b3cc4);
-          border-radius: 10px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-
-        .hero-floating-text p { font-size: 11px; color: #888; margin: 0; }
-        .hero-floating-text strong { font-size: 14px; color: #1a1a2e; font-weight: 700; }
 
         .hero-content {
           flex: 1;
@@ -381,6 +380,8 @@ function goTo(index: number) {
 
       <div className="home">
         <section className="hero">
+
+          {/* Kiri - Slider Foto Mobil */}
           <div className="hero-image-wrap">
             <div className="hero-image-card">
               <div className="hero-badge">Armada Terbaik</div>
@@ -394,6 +395,17 @@ function goTo(index: number) {
                   <strong>{car.name}</strong>
                   <span>{car.type} · {car.seats} Kursi · {car.price}/hari</span>
                 </div>
+                <div className="hero-floating-card">
+                  <div className="hero-floating-icon">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="white">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                  </div>
+                  <div className="hero-floating-text">
+                    <p>Tersedia di</p>
+                    <strong>Seluruh Indonesia</strong>
+                  </div>
+                </div>
                 <div className="hero-dots">
                   {cars.map((_, i) => (
                     <button
@@ -405,37 +417,23 @@ function goTo(index: number) {
                 </div>
               </div>
             </div>
-
-            <div className="hero-floating-card">
-              <div className="hero-floating-icon">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="white">
-                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-              </div>
-              <div className="hero-floating-text">
-                <p>Tersedia di</p>
-                <strong>Seluruh Indonesia</strong>
-              </div>
-            </div>
           </div>
 
+          {/* Kanan - Deskripsi */}
           <div className="hero-content">
             <div className="hero-label">
               <span></span>
               Rental Mobil Terpercaya
             </div>
-
             <h1 className="hero-title">
               Perjalanan Nyaman<br />
               Dimulai dari <span className="highlight">PPS</span>
             </h1>
-
             <p className="hero-desc">
               Dapatkan pengalaman berkendara terbaik dengan armada mobil premium kami.
               Harga transparan, pengemudi profesional, dan siap melayani 24 jam untuk
               setiap perjalanan Anda.
             </p>
-
             <div className="hero-stats">
               <div className="hero-stat">
                 <strong>500+</strong>
@@ -452,7 +450,6 @@ function goTo(index: number) {
                 <span>Layanan Aktif</span>
               </div>
             </div>
-
             <div className="hero-actions">
               <button className="btn-primary">Sewa Sekarang</button>
               <button className="btn-secondary" onClick={() => navigate("/daftar-mobil")}>
@@ -460,6 +457,7 @@ function goTo(index: number) {
               </button>
             </div>
           </div>
+
         </section>
 
         <section className="features">
