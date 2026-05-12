@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-
 import { Link, useLocation } from "react-router-dom";
+import AuthModal from "../Pages/authModal";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -13,6 +13,7 @@ export default function Navbar() {
   const [active, setActive] = useState("Home");
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -25,30 +26,31 @@ export default function Navbar() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
-         .navbar {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  padding: 0 2.5rem;
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(135deg, #1a3fa8 0%, #3b5fd4 30%, #8b3cc4 65%, #c0392b 100%);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(255,255,255,0.12);
-  box-shadow: 0 4px 24px rgba(26,63,168,0.2);
-  transition: box-shadow 0.4s ease;
-}
+        .navbar {
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          z-index: 1000;
+          padding: 0 2.5rem;
+          height: 64px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          background: linear-gradient(135deg, #1a3fa8 0%, #3b5fd4 30%, #8b3cc4 65%, #c0392b 100%);
+          backdrop-filter: blur(16px);
+          -webkit-backdrop-filter: blur(16px);
+          border-bottom: 1px solid rgba(255,255,255,0.12);
+          box-shadow: 0 4px 24px rgba(26,63,168,0.2);
+          transition: box-shadow 0.4s ease;
+        }
 
-.navbar.scrolled {
-  box-shadow: 0 8px 32px rgba(26,63,168,0.35);
-  border-bottom: 1px solid rgba(255,255,255,0.18);
-}
+        .navbar.scrolled {
+          box-shadow: 0 8px 32px rgba(26,63,168,0.35);
+          border-bottom: 1px solid rgba(255,255,255,0.18);
+        }
+
         .navbar::before {
           content: '';
           position: absolute;
@@ -125,6 +127,7 @@ export default function Navbar() {
           letter-spacing: 0.01em;
           transition: color 0.2s ease;
           overflow: hidden;
+          text-decoration: none;
         }
 
         .navbar-link::before {
@@ -148,7 +151,7 @@ export default function Navbar() {
           color: #fff;
           font-weight: 600;
         }
-.navbar
+
         .navbar-link.active::before {
           opacity: 1;
           transform: scale(1);
@@ -320,17 +323,17 @@ export default function Navbar() {
         <div className="navbar-right">
           <div className="navbar-links">
             {navLinks.map((link) => (
-<Link
-  key={link.label}
-  to={link.href}
-  className={`navbar-link${location.pathname === link.href ? " active" : ""}`}
->
-  {link.label}
-</Link>
+              <Link
+                key={link.label}
+                to={link.href}
+                className={`navbar-link${location.pathname === link.href ? " active" : ""}`}
+              >
+                {link.label}
+              </Link>
             ))}
           </div>
           <div className="navbar-divider" />
-          <button className="navbar-btn-login">Login</button>
+          <button className="navbar-btn-login" onClick={() => setShowAuth(true)}>Login</button>
         </div>
 
         <button
@@ -351,9 +354,11 @@ export default function Navbar() {
               {link.label}
             </button>
           ))}
-          <button className="navbar-mobile-login">Login</button>
+          <button className="navbar-mobile-login" onClick={() => { setShowAuth(true); setMenuOpen(false); }}>Login</button>
         </div>
       </nav>
+
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </>
   );
 }

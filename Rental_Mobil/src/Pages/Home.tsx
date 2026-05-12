@@ -451,7 +451,7 @@ export default function Home() {
               </div>
             </div>
             <div className="hero-actions">
-              <button className="btn-primary">Sewa Sekarang</button>
+              <button className="btn-primary">Rental Sekarang</button>
               <button className="btn-secondary" onClick={() => navigate("/daftar-mobil")}>
                 Lihat Armada
               </button>
