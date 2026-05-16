@@ -360,9 +360,6 @@ export default function AuthModal({ onClose }: authModalProps) {
 </button>
                   </div>
                 </div>
-                <div className="auth-forgot">
-                  <a href="#">Lupa password?</a>
-                </div>
                 <button className="auth-btn-submit">Masuk</button>
                 <div className="auth-divider">
                   <div className="auth-divider-line" />

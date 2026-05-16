@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 const cars = [
   {
@@ -62,6 +63,7 @@ const priceRanges = [
 export default function DaftarMobil() {
   const [activeType, setActiveType] = useState("Semua");
   const [activePriceIdx, setActivePriceIdx] = useState(0);
+  const navigate = useNavigate();
 
   const filtered = cars.filter((car) => {
     const typeMatch = activeType === "Semua" || car.type === activeType;
@@ -232,6 +234,25 @@ export default function DaftarMobil() {
         .car-card:hover .car-card-image img {
           transform: scale(1.05);
         }
+        
+        .btn-pesan {
+  background: linear-gradient(135deg, #1a3fa8, #8b3cc4);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: opacity 0.2s, transform 0.15s;
+  box-shadow: 0 4px 12px rgba(26,63,168,0.25);
+}
+
+.btn-pesan:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
 
         .car-type-badge {
           position: absolute;
@@ -373,7 +394,7 @@ export default function DaftarMobil() {
 
           {filtered.length === 0 ? (
             <div className="daftar-empty">
-              <div style={{ fontSize: "3rem" }}>🚗</div>
+              <div style={{ fontSize: "3rem" }}></div>
               <p>Tidak ada mobil yang sesuai filter</p>
             </div>
           ) : (
@@ -387,19 +408,22 @@ export default function DaftarMobil() {
                   <div className="car-card-body">
                     <h3 className="car-card-name">{car.name}</h3>
                     <div className="car-card-meta">
-                      <span>🪑 {car.seats} Kursi</span>
-                      <span>⛽ Bensin</span>
-                      <span>❄️ AC</span>
+                      <span> {car.seats} Kursi</span>
+                      <span> Bensin</span>
+                      <span> AC</span>
                     </div>
                     <div className="car-card-footer">
-                      <div className="car-card-price">
-                        <span>Mulai dari</span>
-                        <div>
-                          <strong>Rp {car.price.toLocaleString("id-ID")}</strong>
-                          <small> /hari</small>
-                        </div>
-                      </div>
-                    </div>
+  <div className="car-card-price">
+    <span>Mulai dari</span>
+    <div>
+      <strong>Rp {car.price.toLocaleString("id-ID")}</strong>
+      <small> /hari</small>
+    </div>
+  </div>
+  <button className="btn-pesan" onClick={() => navigate("/pesan")}>
+    Pesan
+  </button>
+</div>
                   </div>
                 </div>
               ))}
