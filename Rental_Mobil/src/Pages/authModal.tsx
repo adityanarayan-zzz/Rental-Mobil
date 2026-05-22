@@ -330,9 +330,9 @@ export default function AuthModal({ onClose }: authModalProps) {
               <h2 className="auth-title">Selamat Datang!</h2>
               <div className="auth-form">
                 <div className="auth-field">
-                  <label>Email</label>
+                  <label>Username</label>
                   <div className="auth-input-wrap">
-                    <input className="auth-input" type="email" placeholder="contoh@email.com" />
+                    <input className="auth-input" type="text" placeholder="Username/Email" />
                   </div>
                 </div>
                 <div className="auth-field">
@@ -383,11 +383,11 @@ export default function AuthModal({ onClose }: authModalProps) {
               <div className="auth-form">
                 <div className="auth-field">
                   <label>Nama Lengkap</label>
-                  <input className="auth-input" type="text" placeholder="Nama kamu" />
+                  <input className="auth-input" type="text" placeholder="Nama" />
                 </div>
                 <div className="auth-field">
                   <label>Email</label>
-                  <input className="auth-input" type="email" placeholder="contoh@email.com" />
+                  <input className="auth-input" type="email" placeholder="@email.com" />
                 </div>
 <div className="auth-field">
   <label>Password</label>
@@ -395,7 +395,7 @@ export default function AuthModal({ onClose }: authModalProps) {
     <input
       className="auth-input"
       type={showPassword ? "text" : "password"}
-      placeholder="Min. 8 karakter"
+      placeholder="Password min. 8 karakter"
       style={{ paddingRight: "40px" }}
     />
     <button className="auth-eye" onClick={() => setShowPassword(!showPassword)}>
