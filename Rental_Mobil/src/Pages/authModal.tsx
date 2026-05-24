@@ -11,39 +11,48 @@ export default function AuthModal({ onClose }: authModalProps) {
   const [error, setError] = useState("");
 
   // LOGIN
-  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
+async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
 
-    const form = e.currentTarget;
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+  const form = e.currentTarget;
+  const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+  const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
-    try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+  try {
+    const res = await fetch("http://localhost:3000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-      const data = await res.json();
+    const data = await res.json();
 
-      if (!res.ok) {
-        setError(data.message);
-        return;
-      }
-
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      onClose();
-      window.location.reload();
-    } catch {
-      setError("Gagal terhubung ke server");
-    } finally {
-      setLoading(false);
+    if (!res.ok) {
+      setError(data.message);
+      return;
     }
+
+    localStorage.setItem("token", data.token);
+    localStorage.setItem("user", JSON.stringify(data.user));
+
+    onClose();
+
+    // Cek apakah admin
+    if (email.includes("@admin")) {
+      localStorage.setItem("adminToken", data.token);
+      localStorage.setItem("adminUser", JSON.stringify(data.user));
+      window.location.href = "/admin/dashboard";
+    } else {
+      window.location.reload();
+    }
+  } catch {
+    setError("Gagal terhubung ke server");
+  } finally {
+    setLoading(false);
   }
+}
 
   // REGISTER
   async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
@@ -411,7 +420,6 @@ export default function AuthModal({ onClose }: authModalProps) {
           {tab === "login" ? (
             <>
               <h2 className="auth-title">Selamat Datang!</h2>
-              <p className="auth-subtitle">Masuk ke akun PPS kamu</p>
               <form className="auth-form" onSubmit={handleLogin}>
                 <div className="auth-field">
                   <label>Email</label>
@@ -469,10 +477,9 @@ export default function AuthModal({ onClose }: authModalProps) {
           ) : (
             <>
               <h2 className="auth-title">Buat Akun Baru</h2>
-              <p className="auth-subtitle">Daftar dan mulai perjalanan bersama PPS</p>
               <form className="auth-form" onSubmit={handleRegister}>
                 <div className="auth-field">
-                  <label>Username</label>
+                  <label>Username</label> 
                   <input name="username" className="auth-input" type="text" placeholder="Username kamu" required />
                 </div>
                 <div className="auth-field">

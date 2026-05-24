@@ -420,7 +420,7 @@ export default function DaftarMobil() {
       <small> /hari</small>
     </div>
   </div>
-  <button className="btn-pesan" onClick={() => navigate("/pesan")}>
+  <button className="btn-pesan" onClick={() => navigate("/pesan", {state: {mobil: car}})}>
     Pesan
   </button>
 </div>

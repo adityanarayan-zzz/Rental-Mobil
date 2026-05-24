@@ -376,7 +376,6 @@ export default function Navbar() {
           <img src="/src/assets/LOGO_PPS.jpeg" alt="Logo PPS" className="navbar-logo-img" />
           <div className="navbar-logo-text">
             <span className="navbar-logo-title">PPS</span>
-            <span className="navbar-logo-sub">Rental Car Indonesia</span>
           </div>
         </Link>
 
