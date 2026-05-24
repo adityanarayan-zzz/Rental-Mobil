@@ -40,7 +40,8 @@ export default function Pesan() {
   const [copied, setCopied] = useState(false);
   const [showAddMobil, setShowAddMobil] = useState(false);
 
-  const total = pesananList.reduce((acc, p) => acc + p.mobil.price * p.qty * durasi, 0);
+  const driverFee = withDriver ? 500000 * durasi : 0;
+  const total = pesananList.reduce((acc, p) => acc + p.mobil.price * p.qty * durasi, 0) + (driverFee * durasi);
 
   function addMobil(mobil: Mobil) {
     const existing = pesananList.find((p) => p.mobil.id === mobil.id);
@@ -94,7 +95,7 @@ export default function Pesan() {
 
   const method = paymentMethods.find((m) => m.id === selectedPayment);
 
-  // SUCCESS
+  
   if (step === "success") {
     return (
       <>
@@ -142,7 +143,6 @@ export default function Pesan() {
     );
   }
 
-  // PAYMENT
   if (step === "payment") {
     const banks = paymentMethods.filter((m) => m.type === "bank");
     const ewallets = paymentMethods.filter((m) => m.type === "ewallet");
@@ -288,6 +288,12 @@ export default function Pesan() {
                 <div className="summary-row"><span>Durasi</span><strong>{durasi} hari</strong></div>
                 <div className="summary-row"><span>Driver</span><strong>{withDriver ? "Ya" : "Tidak"}</strong></div>
                 {withDriver && <div className="summary-row"><span>Lokasi Jemput</span><strong>{lokasi}</strong></div>}
+                {withDriver && (
+                  <div className="summary-row">
+                    <span>Biaya Driver</span>
+                    <strong>Rp {(500000 * durasi).toLocaleString("id-ID")}</strong>
+                  </div>
+                )}
                 <div className="summary-divider" />
               </div>
               <div className="summary-total">
@@ -304,7 +310,6 @@ export default function Pesan() {
     );
   }
 
-  // FORM
   return (
     <>
       <style>{`
@@ -440,7 +445,6 @@ export default function Pesan() {
               </div>
             </div>
 
-            {/* 2. Data Pemesan */}
             <div className="form-section">
               <div className="form-section-title"><span>2</span>Data Pemesan</div>
               <div className="form-grid">
@@ -463,7 +467,6 @@ export default function Pesan() {
               </div>
             </div>
 
-            {/* 3. Driver */}
             <div className="form-section">
               <div className="form-section-title"><span>3</span>Layanan Driver</div>
               <div className={`driver-toggle${withDriver ? " active" : ""}`} onClick={() => setWithDriver(!withDriver)}>
@@ -485,7 +488,6 @@ export default function Pesan() {
 
           </div>
 
-          {/* Ringkasan */}
           <div className="pesan-summary">
             <p className="summary-title">Ringkasan Pesanan</p>
             {pesananList.length === 0 ? (
@@ -527,7 +529,6 @@ export default function Pesan() {
         </div>
       </div>
 
-      {/* Modal Tambah Mobil */}
       {showAddMobil && (
         <div className="add-mobil-overlay" onClick={(e) => e.target === e.currentTarget && setShowAddMobil(false)}>
           <div className="add-mobil-card">
