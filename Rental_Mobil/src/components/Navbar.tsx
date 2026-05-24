@@ -14,12 +14,25 @@ export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [showAuth, setShowAuth] = useState(false);
+  const [user, setUser] = useState<{username: string; email: string} | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("user");
+    if (stored) setUser(JSON.parse(stored));
+  }, []);
+
+  function handleLogout() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+    setUser(null);
+    window.location.href = "/";
+  }
 
   return (
     <>
@@ -207,6 +220,53 @@ export default function Navbar() {
           transform: scale(0.97);
         }
 
+        .navbar-user {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          z-index: 1;
+        }
+
+        .navbar-user-avatar {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: rgba(255,255,255,0.2);
+          border: 1.5px solid rgba(255,255,255,0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 13px;
+          font-weight: 700;
+          color: #fff;
+          text-transform: uppercase;
+          flex-shrink: 0;
+        }
+
+        .navbar-user-name {
+          font-size: 14px;
+          font-weight: 600;
+          color: #fff;
+        }
+
+        .navbar-btn-logout {
+          background: rgba(255,255,255,0.1);
+          color: #fff;
+          border: 1.5px solid rgba(255,255,255,0.35);
+          border-radius: 8px;
+          padding: 7px 14px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          transition: background 0.2s, border-color 0.2s;
+        }
+
+        .navbar-btn-logout:hover {
+          background: rgba(255,255,255,0.2);
+          border-color: rgba(255,255,255,0.6);
+        }
+
         .navbar-hamburger {
           display: none;
           flex-direction: column;
@@ -333,7 +393,20 @@ export default function Navbar() {
             ))}
           </div>
           <div className="navbar-divider" />
-          <button className="navbar-btn-login" onClick={() => setShowAuth(true)}>Login</button>
+
+          {user ? (
+            <div className="navbar-user">
+              <div className="navbar-user-avatar">
+                {user.username.charAt(0)}
+              </div>
+              <span className="navbar-user-name">{user.username}</span>
+              <button className="navbar-btn-logout" onClick={handleLogout}>
+                Keluar
+              </button>
+            </div>
+          ) : (
+            <button className="navbar-btn-login" onClick={() => setShowAuth(true)}>Login</button>
+          )}
         </div>
 
         <button
@@ -354,11 +427,23 @@ export default function Navbar() {
               {link.label}
             </button>
           ))}
-          <button className="navbar-mobile-login" onClick={() => { setShowAuth(true); setMenuOpen(false); }}>Login</button>
+          {user ? (
+            <button className="navbar-mobile-login" onClick={handleLogout}>
+              Keluar
+            </button>
+          ) : (
+            <button className="navbar-mobile-login" onClick={() => { setShowAuth(true); setMenuOpen(false); }}>
+              Login
+            </button>
+          )}
         </div>
       </nav>
 
-      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+      {showAuth && <AuthModal onClose={() => {
+        setShowAuth(false);
+        const stored = localStorage.getItem("user");
+        if (stored) setUser(JSON.parse(stored));
+      }} />}
     </>
   );
 }

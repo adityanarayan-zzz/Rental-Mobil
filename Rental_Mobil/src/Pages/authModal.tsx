@@ -5,11 +5,85 @@ interface authModalProps {
 }
 
 export default function AuthModal({ onClose }: authModalProps) {
-    const [tab,setTab] = useState<"login" | "register">("login");
-    const [showPassword, setShowPassword] = useState(false);
+  const [tab, setTab] = useState<"login" | "register">("login");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-    return (
-            <>
+  // LOGIN
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const form = e.currentTarget;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message);
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      onClose();
+      window.location.reload();
+    } catch {
+      setError("Gagal terhubung ke server");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // REGISTER
+  async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    const form = e.currentTarget;
+    const username = (form.elements.namedItem("username") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+    const NoWA = (form.elements.namedItem("NoWA") as HTMLInputElement).value;
+
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, email, password, NoWA }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message);
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      onClose();
+      window.location.reload();
+    } catch {
+      setError("Gagal terhubung ke server");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -217,6 +291,16 @@ export default function AuthModal({ onClose }: authModalProps) {
 
         .auth-forgot a:hover { text-decoration: underline; }
 
+        .auth-error {
+          background: #fff0f0;
+          border: 1px solid #ffcccc;
+          border-radius: 8px;
+          padding: 10px 14px;
+          font-size: 13px;
+          color: #c0392b;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
         .auth-btn-submit {
           background: linear-gradient(135deg, #1a3fa8 0%, #8b3cc4 100%);
           color: #fff;
@@ -232,12 +316,9 @@ export default function AuthModal({ onClose }: authModalProps) {
           margin-top: 4px;
         }
 
-        .auth-btn-submit:hover {
-          opacity: 0.9;
-          transform: translateY(-1px);
-        }
-
+        .auth-btn-submit:hover { opacity: 0.9; transform: translateY(-1px); }
         .auth-btn-submit:active { transform: scale(0.98); }
+        .auth-btn-submit:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 
         .auth-divider {
           display: flex;
@@ -292,10 +373,7 @@ export default function AuthModal({ onClose }: authModalProps) {
           margin-top: 4px;
         }
 
-        .auth-terms a {
-          color: #1a3fa8;
-          text-decoration: none;
-        }
+        .auth-terms a { color: #1a3fa8; text-decoration: none; }
       `}</style>
 
       <div className="auth-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
@@ -306,6 +384,8 @@ export default function AuthModal({ onClose }: authModalProps) {
           <div className="auth-logo">
             <img src="/src/assets/LOGO_PPS.jpeg" alt="PPS" />
             <div className="auth-logo-text">
+              <strong>PPS</strong>
+              <span>Rental Car Indonesia</span>
             </div>
           </div>
 
@@ -313,60 +393,69 @@ export default function AuthModal({ onClose }: authModalProps) {
           <div className="auth-tabs">
             <button
               className={`auth-tab${tab === "login" ? " active" : ""}`}
-              onClick={() => setTab("login")}
+              onClick={() => { setTab("login"); setError(""); }}
             >
               Masuk
             </button>
             <button
               className={`auth-tab${tab === "register" ? " active" : ""}`}
-              onClick={() => setTab("register")}
+              onClick={() => { setTab("register"); setError(""); }}
             >
               Daftar
             </button>
           </div>
 
+          {/* Error */}
+          {error && <div className="auth-error" style={{ marginBottom: "12px" }}>{error}</div>}
+
           {tab === "login" ? (
             <>
               <h2 className="auth-title">Selamat Datang!</h2>
-              <div className="auth-form">
+              <p className="auth-subtitle">Masuk ke akun PPS kamu</p>
+              <form className="auth-form" onSubmit={handleLogin}>
                 <div className="auth-field">
-                  <label>Username</label>
+                  <label>Email</label>
                   <div className="auth-input-wrap">
-                    <input className="auth-input" type="text" placeholder="Username/Email" />
+                    <input name="email" className="auth-input" type="email" placeholder="contoh@email.com" required />
                   </div>
                 </div>
                 <div className="auth-field">
                   <label>Password</label>
                   <div className="auth-input-wrap">
                     <input
+                      name="password"
                       className="auth-input"
                       type={showPassword ? "text" : "password"}
                       placeholder="Masukkan password"
                       style={{ paddingRight: "40px" }}
+                      required
                     />
-<button className="auth-eye" onClick={() => setShowPassword(!showPassword)}>
-  {showPassword ? (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2">
-      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-      <line x1="1" y1="1" x2="23" y2="23"/>
-    </svg>
-  ) : (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2">
-      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-      <circle cx="12" cy="12" r="3"/>
-    </svg>
-  )}
-</button>
+                    <button type="button" className="auth-eye" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
                   </div>
                 </div>
-                <button className="auth-btn-submit">Masuk</button>
+                <div className="auth-forgot"><a href="#">Lupa password?</a></div>
+                <button type="submit" className="auth-btn-submit" disabled={loading}>
+                  {loading ? "Memproses..." : "Masuk"}
+                </button>
                 <div className="auth-divider">
                   <div className="auth-divider-line" />
                   <span>atau masuk dengan</span>
                   <div className="auth-divider-line" />
                 </div>
-                <button className="auth-btn-google">
+                <button type="button" className="auth-btn-google">
                   <svg width="18" height="18" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -375,52 +464,61 @@ export default function AuthModal({ onClose }: authModalProps) {
                   </svg>
                   Masuk dengan Google
                 </button>
-              </div>
+              </form>
             </>
           ) : (
             <>
               <h2 className="auth-title">Buat Akun Baru</h2>
-              <div className="auth-form">
+              <p className="auth-subtitle">Daftar dan mulai perjalanan bersama PPS</p>
+              <form className="auth-form" onSubmit={handleRegister}>
                 <div className="auth-field">
-                  <label>Nama Lengkap</label>
-                  <input className="auth-input" type="text" placeholder="Nama" />
+                  <label>Username</label>
+                  <input name="username" className="auth-input" type="text" placeholder="Username kamu" required />
                 </div>
                 <div className="auth-field">
                   <label>Email</label>
-                  <input className="auth-input" type="email" placeholder="@email.com" />
+                  <input name="email" className="auth-input" type="email" placeholder="contoh@email.com" required />
                 </div>
-<div className="auth-field">
-  <label>Password</label>
-  <div className="auth-input-wrap">
-    <input
-      className="auth-input"
-      type={showPassword ? "text" : "password"}
-      placeholder="Password min. 8 karakter"
-      style={{ paddingRight: "40px" }}
-    />
-    <button className="auth-eye" onClick={() => setShowPassword(!showPassword)}>
-      {showPassword ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2">
-          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
-          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
-          <line x1="1" y1="1" x2="23" y2="23"/>
-        </svg>
-      ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2">
-          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-          <circle cx="12" cy="12" r="3"/>
-        </svg>
-      )}
-    </button>
-  </div>
-</div>
-                <button className="auth-btn-submit">Daftar Sekarang</button>
+                <div className="auth-field">
+                  <label>No. WhatsApp</label>
+                  <input name="NoWA" className="auth-input" type="tel" placeholder="08xxxxxxxxxx" />
+                </div>
+                <div className="auth-field">
+                  <label>Password</label>
+                  <div className="auth-input-wrap">
+                    <input
+                      name="password"
+                      className="auth-input"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Min. 8 karakter"
+                      style={{ paddingRight: "40px" }}
+                      required
+                    />
+                    <button type="button" className="auth-eye" onClick={() => setShowPassword(!showPassword)}>
+                      {showPassword ? (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2">
+                          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+                          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+                          <line x1="1" y1="1" x2="23" y2="23"/>
+                        </svg>
+                      ) : (
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#aaa" strokeWidth="2">
+                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                          <circle cx="12" cy="12" r="3"/>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                <button type="submit" className="auth-btn-submit" disabled={loading}>
+                  {loading ? "Memproses..." : "Daftar Sekarang"}
+                </button>
                 <div className="auth-divider">
                   <div className="auth-divider-line" />
                   <span>atau daftar dengan</span>
                   <div className="auth-divider-line" />
                 </div>
-                <button className="auth-btn-google">
+                <button type="button" className="auth-btn-google">
                   <svg width="18" height="18" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -432,7 +530,7 @@ export default function AuthModal({ onClose }: authModalProps) {
                 <p className="auth-terms">
                   Dengan mendaftar, kamu menyetujui <a href="#">Syarat & Ketentuan</a> dan <a href="#">Kebijakan Privasi</a> kami.
                 </p>
-              </div>
+              </form>
             </>
           )}
         </div>

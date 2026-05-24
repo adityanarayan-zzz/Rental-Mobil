@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import bcrypt from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import prisma from "../lib/prisma";
 
@@ -9,7 +9,6 @@ const JWT_SECRET = process.env.JWT_SECRET || "secret";
 export const register = async (req: Request, res: Response) => {
   try {
     const { username, password, email, NoWA } = req.body;
-
     if (!username || !password || !email) {
       return res.status(400).json({ message: "Username, email, dan password wajib diisi" });
     }
@@ -19,7 +18,7 @@ export const register = async (req: Request, res: Response) => {
       return res.status(409).json({ message: "Email sudah terdaftar" });
     }
 
-    const hashed = await bcrypt.hash(password, 10);
+    const hashed = await bcrypt.hash(password as string, 10);
 
     const user = await prisma.user.create({
       data: { username, password: hashed, email, NoWA },
@@ -58,7 +57,7 @@ export const login = async (req: Request, res: Response) => {
       return res.status(401).json({ message: "Email atau password salah" });
     }
 
-    const valid = await bcrypt.compare(password, user.password);
+    const valid = await bcrypt.compare(password as string, user.password);
     if (!valid) {
       return res.status(401).json({ message: "Email atau password salah" });
     }
