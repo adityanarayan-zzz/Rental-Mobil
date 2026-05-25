@@ -1,7 +1,9 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import  authRoutes  from "./routes/authRoutes";
+import session from "express-session";
+import passport from "./lib/passport";
+import authRoutes from "./routes/authRoutes";
 
 dotenv.config();
 
@@ -10,9 +12,15 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(express.json());
+app.use(session({
+  secret: process.env.JWT_SECRET || "secret",
+  resave: false,
+  saveUninitialized: false,
+}));
+app.use(passport.initialize());
+app.use(passport.session());
 
-// Routes
-app.get("/", (_, res) => res.json({ message: "PPS Rental API is running" }));
+app.get("/", (_, res) => res.json({ message: "PPS Rental API is running 🚗" }));
 app.use("/api/auth", authRoutes);
 
 app.listen(PORT, () => {

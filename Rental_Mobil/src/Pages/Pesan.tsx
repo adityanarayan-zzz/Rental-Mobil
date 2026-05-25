@@ -39,6 +39,7 @@ export default function Pesan() {
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showAddMobil, setShowAddMobil] = useState(false);
+  const [noWa, setNoWa] = useState("");
 
   const driverFee = withDriver ? 500000 * durasi : 0;
   const total = pesananList.reduce((acc, p) => acc + p.mobil.price * p.qty * durasi, 0) + (driverFee * durasi);
@@ -131,6 +132,7 @@ export default function Pesan() {
               <div className="success-detail-row"><span>Tanggal</span><strong>{tanggal}</strong></div>
               <div className="success-detail-row"><span>Durasi</span><strong>{durasi} hari</strong></div>
               <div className="success-detail-row"><span>Driver</span><strong>{withDriver ? "Ya" : "Tidak"}</strong></div>
+              <div className="success-detail-row"><span>No. WhatsApp</span><strong>{noWa}</strong></div>
               {withDriver && <div className="success-detail-row"><span>Lokasi Jemput</span><strong>{lokasi}</strong></div>}
               <div className="success-detail-row"><span>Metode Bayar</span><strong>{method?.label}</strong></div>
               <div className="success-detail-row"><span>Total Bayar</span><strong>Rp {total.toLocaleString("id-ID")}</strong></div>
@@ -284,6 +286,7 @@ export default function Pesan() {
               </div>
               <div className="summary-rows">
                 <div className="summary-row"><span>Nama</span><strong>{nama}</strong></div>
+                <div className="summary-row"><span>No. WhatsApp</span><strong>{noWa || "-"}</strong></div>
                 <div className="summary-row"><span>Tanggal</span><strong>{tanggal}</strong></div>
                 <div className="summary-row"><span>Durasi</span><strong>{durasi} hari</strong></div>
                 <div className="summary-row"><span>Driver</span><strong>{withDriver ? "Ya" : "Tidak"}</strong></div>
@@ -452,6 +455,20 @@ export default function Pesan() {
                   <label>Nama Lengkap</label>
                   <input className="form-input" type="text" placeholder="Masukkan nama lengkap" value={nama} onChange={(e) => setNama(e.target.value)} />
                 </div>
+                <div className="form-field full">
+  <label>Nomor WhatsApp</label>
+  <input
+    className="form-input"
+    type="tel"
+    placeholder="08xxxxxxxxxx"
+    value={noWa}
+    onChange={(e) => {
+      const val = e.target.value.replace(/[^0-9]/g, "");
+      setNoWa(val);
+    }}
+    inputMode="numeric"
+  />
+</div>
                 <div className="form-field">
                   <label>Tanggal Sewa</label>
                   <input className="form-input" type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} min={new Date().toISOString().split("T")[0]} />
@@ -472,7 +489,7 @@ export default function Pesan() {
               <div className={`driver-toggle${withDriver ? " active" : ""}`} onClick={() => setWithDriver(!withDriver)}>
                 <div className="driver-toggle-info">
                   <strong>Sewa dengan Driver</strong>
-                  <span>Driver profesional siap mengantar kamu</span>
+                  <span>Ada Tambahan Biaya Jika Dengan Driver</span>
                 </div>
                 <div className={`toggle-switch${withDriver ? " on" : ""}`}>
                   <div className="toggle-knob" />
@@ -491,7 +508,7 @@ export default function Pesan() {
           <div className="pesan-summary">
             <p className="summary-title">Ringkasan Pesanan</p>
             {pesananList.length === 0 ? (
-              <div className="summary-empty">🚗 Belum ada kendaraan dipilih</div>
+              <div className="summary-empty">Belum ada kendaraan dipilih</div>
             ) : (
               <div className="summary-mobil-list">
                 {pesananList.map((p) => (
@@ -519,7 +536,7 @@ export default function Pesan() {
             </div>
             <button
               className="btn-pesan-submit"
-              disabled={pesananList.length === 0 || !nama || !tanggal || (withDriver && !lokasi)}
+              disabled={pesananList.length === 0 || !nama || !tanggal || !noWa || (withDriver && !lokasi)}
               onClick={() => setStep("payment")}
             >
               Lanjut ke Pembayaran →

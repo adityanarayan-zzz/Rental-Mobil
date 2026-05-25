@@ -9,61 +9,78 @@ export default function AuthModal({ onClose }: authModalProps) {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
 
-  // LOGIN
-async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
-  e.preventDefault();
-  setError("");
-  setLoading(true);
-
-  const form = e.currentTarget;
-  const email = (form.elements.namedItem("email") as HTMLInputElement).value;
-  const password = (form.elements.namedItem("password") as HTMLInputElement).value;
-
-  try {
-    const res = await fetch("http://localhost:3000/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      setError(data.message);
-      return;
-    }
-
-    localStorage.setItem("token", data.token);
-    localStorage.setItem("user", JSON.stringify(data.user));
-
-    onClose();
-
-    // Cek apakah admin
-    if (email.includes("@admin")) {
-      localStorage.setItem("adminToken", data.token);
-      localStorage.setItem("adminUser", JSON.stringify(data.user));
-      window.location.href = "/admin/dashboard";
+  function validatePassword(value: string) {
+    if (value.length < 8) {
+      setPasswordError("Password minimal 8 karakter");
+    } else if (!/[A-Z]/.test(value)) {
+      setPasswordError("Harus mengandung huruf kapital");
+    } else if (!/[0-9]/.test(value)) {
+      setPasswordError("Harus mengandung angka");
     } else {
-      window.location.reload();
+      setPasswordError("");
     }
-  } catch {
-    setError("Gagal terhubung ke server");
-  } finally {
-    setLoading(false);
   }
-}
 
-  // REGISTER
-  async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
+  async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     const form = e.currentTarget;
-    const username = (form.elements.namedItem("username") as HTMLInputElement).value;
     const email = (form.elements.namedItem("email") as HTMLInputElement).value;
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    try {
+      const res = await fetch("http://localhost:3000/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.message);
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+
+      onClose();
+
+      if (email.includes("@admin")) {
+        localStorage.setItem("adminToken", data.token);
+        localStorage.setItem("adminUser", JSON.stringify(data.user));
+        window.location.href = "/admin/dashboard";
+      } else {
+        window.location.reload();
+      }
+    } catch {
+      setError("Gagal terhubung ke server");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRegister(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    setError("");
+
+    const form = e.currentTarget;
+    const password = (form.elements.namedItem("password") as HTMLInputElement).value;
+
+    if (!/^(?=.*[A-Z])(?=.*[0-9]).{8,}$/.test(password)) {
+      setError("Password minimal 8 karakter, harus mengandung huruf kapital dan angka");
+      return;
+    }
+
+    setLoading(true);
+
+    const username = (form.elements.namedItem("username") as HTMLInputElement).value;
+    const email = (form.elements.namedItem("email") as HTMLInputElement).value;
     const NoWA = (form.elements.namedItem("NoWA") as HTMLInputElement).value;
 
     try {
@@ -244,9 +261,7 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
           font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-        .auth-input-wrap {
-          position: relative;
-        }
+        .auth-input-wrap { position: relative; }
 
         .auth-input {
           width: 100%;
@@ -268,6 +283,7 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
           box-shadow: 0 0 0 3px rgba(26,63,168,0.08);
         }
 
+        .auth-input.error { border-color: #c0392b; }
         .auth-input::placeholder { color: #bbb; }
 
         .auth-eye {
@@ -283,6 +299,31 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
           padding: 0;
           display: flex;
           align-items: center;
+        }
+
+        .auth-password-hint {
+          font-size: 11px;
+          color: #aaa;
+          margin-top: 2px;
+          line-height: 1.4;
+        }
+
+        .auth-password-error {
+          font-size: 12px;
+          color: #c0392b;
+          margin-top: 2px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+        }
+
+        .auth-password-ok {
+          font-size: 12px;
+          color: #16a34a;
+          margin-top: 2px;
+          display: flex;
+          align-items: center;
+          gap: 4px;
         }
 
         .auth-forgot {
@@ -389,32 +430,28 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
         <div className="auth-modal">
           <button className="auth-close" onClick={onClose}>✕</button>
 
-          {/* Logo */}
           <div className="auth-logo">
             <img src="/src/assets/LOGO_PPS.jpeg" alt="PPS" />
             <div className="auth-logo-text">
               <strong>PPS</strong>
-              <span>Rental Car Indonesia</span>
             </div>
           </div>
 
-          {/* Tabs */}
           <div className="auth-tabs">
             <button
               className={`auth-tab${tab === "login" ? " active" : ""}`}
-              onClick={() => { setTab("login"); setError(""); }}
+              onClick={() => { setTab("login"); setError(""); setPasswordError(""); }}
             >
               Masuk
             </button>
             <button
               className={`auth-tab${tab === "register" ? " active" : ""}`}
-              onClick={() => { setTab("register"); setError(""); }}
+              onClick={() => { setTab("register"); setError(""); setPasswordError(""); }}
             >
               Daftar
             </button>
           </div>
 
-          {/* Error */}
           {error && <div className="auth-error" style={{ marginBottom: "12px" }}>{error}</div>}
 
           {tab === "login" ? (
@@ -424,7 +461,7 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
                 <div className="auth-field">
                   <label>Email</label>
                   <div className="auth-input-wrap">
-                    <input name="email" className="auth-input" type="email" placeholder="contoh@email.com" required />
+                    <input name="email" className="auth-input" type="email" placeholder="@email.com" required />
                   </div>
                 </div>
                 <div className="auth-field">
@@ -463,7 +500,11 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
                   <span>atau masuk dengan</span>
                   <div className="auth-divider-line" />
                 </div>
-                <button type="button" className="auth-btn-google">
+<button
+  type="button"
+  className="auth-btn-google"
+  onClick={() => window.location.href = "http://localhost:3000/api/auth/google"}
+>
                   <svg width="18" height="18" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                     <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -479,26 +520,26 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
               <h2 className="auth-title">Buat Akun Baru</h2>
               <form className="auth-form" onSubmit={handleRegister}>
                 <div className="auth-field">
-                  <label>Username</label> 
+                  <label>Username</label>
                   <input name="username" className="auth-input" type="text" placeholder="Username kamu" required />
                 </div>
                 <div className="auth-field">
                   <label>Email</label>
-                  <input name="email" className="auth-input" type="email" placeholder="contoh@email.com" required />
+                  <input name="email" className="auth-input" type="email" placeholder="@email.com" required />
                 </div>
                 <div className="auth-field">
                   <label>No. WhatsApp</label>
-                  <input name="NoWA" className="auth-input" type="tel" placeholder="08xxxxxxxxxx" />
+                  <input name="NoWA" className="auth-input" type="tel" />
                 </div>
                 <div className="auth-field">
                   <label>Password</label>
                   <div className="auth-input-wrap">
                     <input
                       name="password"
-                      className="auth-input"
+                      className={`auth-input${passwordError ? " error" : ""}`}
                       type={showPassword ? "text" : "password"}
-                      placeholder="Min. 8 karakter"
                       style={{ paddingRight: "40px" }}
+                      onChange={(e) => validatePassword(e.target.value)}
                       required
                     />
                     <button type="button" className="auth-eye" onClick={() => setShowPassword(!showPassword)}>
@@ -516,23 +557,14 @@ async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
                       )}
                     </button>
                   </div>
+                  {passwordError ? (
+                    <p className="auth-password-error">⚠ {passwordError}</p>
+                  ) : (
+                    <p className="auth-password-hint">Min. 8 karakter, mengandung huruf kapital dan angka</p>
+                  )}
                 </div>
-                <button type="submit" className="auth-btn-submit" disabled={loading}>
+                <button type="submit" className="auth-btn-submit" disabled={loading || !!passwordError}>
                   {loading ? "Memproses..." : "Daftar Sekarang"}
-                </button>
-                <div className="auth-divider">
-                  <div className="auth-divider-line" />
-                  <span>atau daftar dengan</span>
-                  <div className="auth-divider-line" />
-                </div>
-                <button type="button" className="auth-btn-google">
-                  <svg width="18" height="18" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                  </svg>
-                  Daftar dengan Google
                 </button>
                 <p className="auth-terms">
                   Dengan mendaftar, kamu menyetujui <a href="#">Syarat & Ketentuan</a> dan <a href="#">Kebijakan Privasi</a> kami.
