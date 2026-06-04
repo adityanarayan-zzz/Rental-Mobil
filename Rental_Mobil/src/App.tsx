@@ -18,10 +18,10 @@ function AppContent() {
       localStorage.setItem("token", token);
       localStorage.setItem("user", decodeURIComponent(user));
 
-      // Bersihkan URL
+
       window.history.replaceState({}, "", "/");
 
-      // Cek admin
+
       const userData = JSON.parse(decodeURIComponent(user));
       if (userData.email?.includes("@admin")) {
         localStorage.setItem("adminToken", token);

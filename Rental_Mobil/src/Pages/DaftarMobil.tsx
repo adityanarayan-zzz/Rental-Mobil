@@ -1,58 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-const cars = [
-  {
-    id: 1,
-    name: "Toyota Innova",
-    type: "MPV",
-    image: "/src/assets/innova.jpeg",
-    price: 450000,
-    seats: 7,
-  },
-  {
-    id: 2,
-    name: "Toyota Avanza",
-    type: "MPV",
-    image: "/src/assets/avanza.png",
-    price: 300000,
-    seats: 7,
-  },
-  {
-    id: 3,
-    name: "Toyota Fortuner",
-    type: "SUV",
-    image: "/src/assets/innova.jpeg",
-    price: 650000,
-    seats: 7,
-  },
-  {
-    id: 4,
-    name: "Honda Jazz",
-    type: "Hatchback",
-    image: "/src/assets/avanza.png",
-    price: 250000,
-    seats: 5,
-  },
-  {
-    id: 5,
-    name: "Toyota Hiace",
-    type: "Van",
-    image: "/src/assets/innova.jpeg",
-    price: 750000,
-    seats: 14,
-  },
-  {
-    id: 6,
-    name: "Mitsubishi Xpander",
-    type: "MPV",
-    image: "/src/assets/avanza.png",
-    price: 400000,
-    seats: 7,
-  },
-];
+interface Mobil {
+  id_mobil: number;
+  nama: string;
+  tipe: string;
+  harga: number;
+  kursi: number;
+  totalUnit: number;
+  unitTersedia: number;
+  gambar?: string;
+  tersedia: boolean;
+}
 
-const types = ["Semua", "MPV", "SUV", "Hatchback", "Van"];
+const types = ["Semua", "MPV", "SUV", "Hatchback", "Van", "Sedan"];
 const priceRanges = [
   { label: "Semua Harga", min: 0, max: Infinity },
   { label: "< Rp 300.000", min: 0, max: 299999 },
@@ -61,14 +22,32 @@ const priceRanges = [
 ];
 
 export default function DaftarMobil() {
+  const navigate = useNavigate();
+  const [mobils, setMobils] = useState<Mobil[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeType, setActiveType] = useState("Semua");
   const [activePriceIdx, setActivePriceIdx] = useState(0);
-  const navigate = useNavigate();
 
-  const filtered = cars.filter((car) => {
-    const typeMatch = activeType === "Semua" || car.type === activeType;
+  useEffect(() => {
+    fetchMobil();
+  }, []);
+
+  async function fetchMobil() {
+    try {
+      const res = await fetch("http://localhost:3000/api/mobil");
+      const data = await res.json();
+      setMobils(data.mobils);
+    } catch {
+      console.error("Gagal fetch mobil");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const filtered = mobils.filter((car) => {
+    const typeMatch = activeType === "Semua" || car.tipe === activeType;
     const range = priceRanges[activePriceIdx];
-    const priceMatch = car.price >= range.min && car.price <= range.max;
+    const priceMatch = car.harga >= range.min && car.harga <= range.max;
     return typeMatch && priceMatch;
   });
 
@@ -189,9 +168,7 @@ export default function DaftarMobil() {
           font-weight: 500;
         }
 
-        .daftar-count strong {
-          color: #1a1a2e;
-        }
+        .daftar-count strong { color: #1a1a2e; }
 
         .car-grid {
           display: grid;
@@ -213,6 +190,9 @@ export default function DaftarMobil() {
           box-shadow: 0 16px 48px rgba(26,63,168,0.13);
         }
 
+        .car-card.habis { opacity: 0.6; cursor: not-allowed; }
+        .car-card.habis:hover { transform: none; box-shadow: none; }
+
         .car-card-image {
           width: 100%;
           aspect-ratio: 16/10;
@@ -231,33 +211,16 @@ export default function DaftarMobil() {
           transition: transform 0.3s ease;
         }
 
-        .car-card:hover .car-card-image img {
-          transform: scale(1.05);
-        }
-        
-        .btn-pesan {
-  background: linear-gradient(135deg, #1a3fa8, #8b3cc4);
-  color: #fff;
-  border: none;
-  border-radius: 10px;
-  padding: 9px 18px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  transition: opacity 0.2s, transform 0.15s;
-  box-shadow: 0 4px 12px rgba(26,63,168,0.25);
-}
+        .car-card:hover .car-card-image img { transform: scale(1.05); }
 
-.btn-pesan:hover {
-  opacity: 0.88;
-  transform: translateY(-1px);
-}
+        .car-card-image .no-img {
+          font-size: 4rem;
+          opacity: 0.3;
+        }
 
         .car-type-badge {
           position: absolute;
-          top: 12px;
-          left: 12px;
+          top: 12px; left: 12px;
           background: rgba(255,255,255,0.88);
           backdrop-filter: blur(6px);
           border-radius: 8px;
@@ -268,9 +231,18 @@ export default function DaftarMobil() {
           letter-spacing: 0.03em;
         }
 
-        .car-card-body {
-          padding: 1.25rem;
+        .car-habis-badge {
+          position: absolute;
+          top: 12px; right: 12px;
+          background: rgba(220,38,38,0.9);
+          color: #fff;
+          border-radius: 8px;
+          padding: 4px 10px;
+          font-size: 11px;
+          font-weight: 600;
         }
+
+        .car-card-body { padding: 1.25rem; }
 
         .car-card-name {
           font-size: 16px;
@@ -289,9 +261,6 @@ export default function DaftarMobil() {
         .car-card-meta span {
           font-size: 12px;
           color: #888;
-          display: flex;
-          align-items: center;
-          gap: 4px;
         }
 
         .car-card-footer {
@@ -302,33 +271,27 @@ export default function DaftarMobil() {
           border-top: 1px solid rgba(26,63,168,0.07);
         }
 
-        .car-card-price {
-          display: flex;
-          flex-direction: column;
-          gap: 1px;
+        .car-card-price { display: flex; flex-direction: column; gap: 1px; }
+        .car-card-price span { font-size: 11px; color: #aaa; }
+        .car-card-price strong { font-size: 17px; font-weight: 800; color: #1a3fa8; letter-spacing: -0.01em; }
+        .car-card-price small { font-size: 11px; color: #888; font-weight: 400; }
+
+        .btn-pesan {
+          background: linear-gradient(135deg, #1a3fa8, #8b3cc4);
+          color: #fff;
+          border: none;
+          border-radius: 10px;
+          padding: 9px 18px;
+          font-size: 13px;
+          font-weight: 600;
+          cursor: pointer;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          transition: opacity 0.2s, transform 0.15s;
+          box-shadow: 0 4px 12px rgba(26,63,168,0.25);
         }
 
-        .car-card-price span {
-          font-size: 11px;
-          color: #aaa;
-        }
-
-        .car-card-price strong {
-          font-size: 17px;
-          font-weight: 800;
-          color: #1a3fa8;
-          letter-spacing: -0.01em;
-        }
-
-        .car-card-price small {
-          font-size: 11px;
-          color: #888;
-          font-weight: 400;
-        }
-
-        .btn-pesan:active {
-          transform: scale(0.97);
-        }
+        .btn-pesan:hover { opacity: 0.88; transform: translateY(-1px); }
+        .btn-pesan:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
         .daftar-empty {
           text-align: center;
@@ -336,9 +299,28 @@ export default function DaftarMobil() {
           color: #aaa;
         }
 
-        .daftar-empty p {
-          font-size: 15px;
-          margin-top: 8px;
+        .daftar-empty p { font-size: 15px; margin-top: 8px; }
+
+        .loading-wrap {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 5rem 0;
+          color: #888;
+          font-size: 14px;
+          gap: 10px;
+        }
+
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        .spinner {
+          width: 20px; height: 20px;
+          border: 2px solid #e0e4f0;
+          border-top-color: #1a3fa8;
+          border-radius: 50%;
+          animation: spin 0.7s linear infinite;
         }
 
         @media (max-width: 1024px) {
@@ -363,11 +345,7 @@ export default function DaftarMobil() {
           <div className="filter-group">
             <span className="filter-label">Tipe</span>
             {types.map((t) => (
-              <button
-                key={t}
-                className={`filter-btn${activeType === t ? " active" : ""}`}
-                onClick={() => setActiveType(t)}
-              >
+              <button key={t} className={`filter-btn${activeType === t ? " active" : ""}`} onClick={() => setActiveType(t)}>
                 {t}
               </button>
             ))}
@@ -376,11 +354,7 @@ export default function DaftarMobil() {
           <div className="filter-group">
             <span className="filter-label">Harga</span>
             {priceRanges.map((r, i) => (
-              <button
-                key={i}
-                className={`filter-btn${activePriceIdx === i ? " active" : ""}`}
-                onClick={() => setActivePriceIdx(i)}
-              >
+              <button key={i} className={`filter-btn${activePriceIdx === i ? " active" : ""}`} onClick={() => setActivePriceIdx(i)}>
                 {r.label}
               </button>
             ))}
@@ -388,46 +362,78 @@ export default function DaftarMobil() {
         </div>
 
         <div className="daftar-content">
-          <p className="daftar-count">
-            Menampilkan <strong>{filtered.length} mobil</strong>
-          </p>
-
-          {filtered.length === 0 ? (
-            <div className="daftar-empty">
-              <div style={{ fontSize: "3rem" }}></div>
-              <p>Tidak ada mobil yang sesuai filter</p>
+          {loading ? (
+            <div className="loading-wrap">
+              <div className="spinner" />
+              Memuat data kendaraan...
             </div>
           ) : (
-            <div className="car-grid">
-              {filtered.map((car) => (
-                <div className="car-card" key={car.id}>
-                  <div className="car-card-image">
-                    <img src={car.image} alt={car.name} />
-                    <div className="car-type-badge">{car.type}</div>
-                  </div>
-                  <div className="car-card-body">
-                    <h3 className="car-card-name">{car.name}</h3>
-                    <div className="car-card-meta">
-                      <span> {car.seats} Kursi</span>
-                      <span> Bensin</span>
-                      <span> AC</span>
-                    </div>
-                    <div className="car-card-footer">
-  <div className="car-card-price">
-    <span>Mulai dari</span>
-    <div>
-      <strong>Rp {car.price.toLocaleString("id-ID")}</strong>
-      <small> /hari</small>
-    </div>
-  </div>
-  <button className="btn-pesan" onClick={() => navigate("/pesan", {state: {mobil: car}})}>
-    Pesan
-  </button>
-</div>
-                  </div>
+            <>
+              <p className="daftar-count">
+                Menampilkan <strong>{filtered.length} mobil</strong>
+              </p>
+
+              {filtered.length === 0 ? (
+                <div className="daftar-empty">
+                  <div style={{ fontSize: "3rem" }}>🚗</div>
+                  <p>Tidak ada mobil yang sesuai filter</p>
                 </div>
-              ))}
-            </div>
+              ) : (
+                <div className="car-grid">
+                  {filtered.map((car) => (
+                    <div className={`car-card${!car.tersedia || car.unitTersedia === 0 ? " habis" : ""}`} key={car.id_mobil}>
+                      <div className="car-card-image">
+                        {car.gambar ? (
+                          <img src={car.gambar} alt={car.nama} />
+                        ) : (
+                          <span className="no-img">🚗</span>
+                        )}
+                        <div className="car-type-badge">{car.tipe}</div>
+                        {(!car.tersedia || car.unitTersedia === 0) && (
+                          <div className="car-habis-badge">Habis</div>
+                        )}
+                      </div>
+                      <div className="car-card-body">
+                        <h3 className="car-card-name">{car.nama}</h3>
+                        <div className="car-card-meta">
+                          <span>🪑 {car.kursi} Kursi</span>
+                          <span>⛽ Bensin</span>
+                          <span>❄️ AC</span>
+                          <span>📦 {car.unitTersedia} tersedia</span>
+                        </div>
+                        <div className="car-card-footer">
+                          <div className="car-card-price">
+                            <span>Mulai dari</span>
+                            <div>
+                              <strong>Rp {car.harga.toLocaleString("id-ID")}</strong>
+                              <small> /hari</small>
+                            </div>
+                          </div>
+                          <button
+                            className="btn-pesan"
+                            disabled={!car.tersedia || car.unitTersedia === 0}
+                            onClick={() => navigate("/pesan", {
+                              state: {
+                                mobil: {
+                                  id: car.id_mobil,
+                                  name: car.nama,
+                                  type: car.tipe,
+                                  image: car.gambar || "",
+                                  price: car.harga,
+                                  seats: car.kursi,
+                                }
+                              }
+                            })}
+                          >
+                            {car.unitTersedia === 0 ? "Habis" : "Pesan"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>

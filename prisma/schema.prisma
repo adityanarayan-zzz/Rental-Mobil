@@ -19,3 +19,15 @@ model User {
   email    String @unique
   NoWA     String
 }
+
+model Mobil {
+  id_mobil     Int      @id @default(autoincrement())
+  nama         String
+  tipe         String
+  harga        Int
+  kursi        Int
+  totalUnit    Int      @default(0)
+  unitTersedia Int      @default(0)
+  gambar       String?
+  tersedia     Boolean  @default(true)
+}
