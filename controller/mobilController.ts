@@ -1,7 +1,25 @@
 import { Request, Response } from "express";
+import multer from "multer";
 import prisma from "../lib/prisma";
+import { uploadImage } from "../lib/supabaseStorage";
 
+export const upload = multer({ storage: multer.memoryStorage() });
 
+// UPLOAD IMAGE
+export const uploadMobilImage = async (req: Request, res: Response) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: "File tidak ditemukan" });
+    }
+    const url = await uploadImage(req.file);
+    return res.json({ url });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Gagal upload gambar" });
+  }
+};
+
+// GET ALL
 export const getAllMobil = async (_req: Request, res: Response) => {
   try {
     const mobils = await prisma.mobil.findMany({
@@ -14,7 +32,7 @@ export const getAllMobil = async (_req: Request, res: Response) => {
   }
 };
 
-
+// GET BY ID
 export const getMobilById = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -26,7 +44,7 @@ export const getMobilById = async (req: Request, res: Response) => {
   }
 };
 
-
+// CREATE
 export const createMobil = async (req: Request, res: Response) => {
   try {
     const { nama, tipe, harga, kursi, totalUnit, gambar } = req.body;
@@ -55,7 +73,7 @@ export const createMobil = async (req: Request, res: Response) => {
   }
 };
 
-
+// UPDATE
 export const updateMobil = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -64,7 +82,6 @@ export const updateMobil = async (req: Request, res: Response) => {
     const existing = await prisma.mobil.findUnique({ where: { id_mobil: id } });
     if (!existing) return res.status(404).json({ message: "Mobil tidak ditemukan" });
 
-    // Hitung selisih unit jika totalUnit berubah
     const unitDiff = totalUnit ? parseInt(totalUnit) - existing.totalUnit : 0;
     const newUnitTersedia = Math.max(0, existing.unitTersedia + unitDiff);
 
@@ -89,11 +106,11 @@ export const updateMobil = async (req: Request, res: Response) => {
   }
 };
 
-
+// UPDATE UNIT ONLY
 export const updateUnit = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
-    const { delta } = req.body; // +1 atau -1
+    const { delta } = req.body;
 
     const existing = await prisma.mobil.findUnique({ where: { id_mobil: id } });
     if (!existing) return res.status(404).json({ message: "Mobil tidak ditemukan" });
@@ -116,7 +133,7 @@ export const updateUnit = async (req: Request, res: Response) => {
   }
 };
 
-
+// DELETE
 export const deleteMobil = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
