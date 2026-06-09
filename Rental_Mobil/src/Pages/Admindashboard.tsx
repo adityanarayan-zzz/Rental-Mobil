@@ -383,8 +383,8 @@ export default function AdminDashboard() {
                         </td>
                         <td>
                           <div className="action-btns">
-                            <button className="btn-edit" onClick={() => openEdit(m)}>✏️ Edit</button>
-                            <button className="btn-delete" onClick={() => openDelete(m)}>🗑️ Hapus</button>
+                            <button className="btn-edit" onClick={() => openEdit(m)}> Edit</button>
+                            <button className="btn-delete" onClick={() => openDelete(m)}>Hapus</button>
                           </div>
                         </td>
                       </tr>

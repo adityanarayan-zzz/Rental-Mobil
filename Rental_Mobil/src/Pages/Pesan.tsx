@@ -10,17 +10,26 @@ interface Mobil {
   seats: number;
 }
 
+interface MobilAPI {
+  id_mobil: number;
+  nama: string;
+  tipe: string;
+  harga: number;
+  kursi: number;
+  totalUnit: number;
+  unitTersedia: number;
+  gambar?: string;
+  tersedia: boolean;
+}
+
 interface PesananMobil {
   mobil: Mobil;
   qty: number;
 }
 
-const allCars: Mobil[] = [
-  { id: 1, name: "Toyota Avanza", type: "MPV Keluarga", image: "/src/assets/avanza.png", price: 300000, seats: 7 },
-  { id: 2, name: "Toyota Innova", type: "MPV Premium", image: "/src/assets/innova.jpeg", price: 450000, seats: 7 },
-];
-
 type Step = "form" | "payment" | "success";
+
+const DRIVER_FEE_PER_HARI = 500000;
 
 export default function Pesan() {
   const location = useLocation();
@@ -31,18 +40,49 @@ export default function Pesan() {
   const [pesananList, setPesananList] = useState<PesananMobil[]>(
     mobilDariDaftar ? [{ mobil: mobilDariDaftar, qty: 1 }] : []
   );
-  const [withDriver, setWithDriver] = useState(false);
   const [durasi, setDurasi] = useState(1);
   const [nama, setNama] = useState("");
   const [tanggal, setTanggal] = useState("");
   const [lokasi, setLokasi] = useState("");
+  const [noWa, setNoWa] = useState("");
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showAddMobil, setShowAddMobil] = useState(false);
-  const [noWa, setNoWa] = useState("");
+  const [availableCars, setAvailableCars] = useState<Mobil[]>([]);
+  const [loadingCars, setLoadingCars] = useState(false);
 
-  const driverFee = withDriver ? 500000 * durasi : 0;
-  const total = pesananList.reduce((acc, p) => acc + p.mobil.price * p.qty * durasi, 0) + (driverFee * durasi);
+  // Driver selalu include
+  const driverFee = DRIVER_FEE_PER_HARI * durasi;
+  const mobilTotal = pesananList.reduce((acc, p) => acc + p.mobil.price * p.qty * durasi, 0);
+  const total = mobilTotal + driverFee;
+
+  async function fetchAvailableCars() {
+    setLoadingCars(true);
+    try {
+      const res = await fetch("http://localhost:3000/api/mobil");
+      const data = await res.json();
+      const mapped: Mobil[] = (data.mobils as MobilAPI[])
+        .filter((m) => m.tersedia && m.unitTersedia > 0)
+        .map((m) => ({
+          id: m.id_mobil,
+          name: m.nama,
+          type: m.tipe,
+          image: m.gambar || "",
+          price: m.harga,
+          seats: m.kursi,
+        }));
+      setAvailableCars(mapped);
+    } catch {
+      console.error("Gagal fetch mobil");
+    } finally {
+      setLoadingCars(false);
+    }
+  }
+
+  function openAddMobil() {
+    setShowAddMobil(true);
+    fetchAvailableCars();
+  }
 
   function addMobil(mobil: Mobil) {
     const existing = pesananList.find((p) => p.mobil.id === mobil.id);
@@ -81,7 +121,7 @@ export default function Pesan() {
     setLokasi("");
     setDurasi(1);
     setSelectedPayment(null);
-    setWithDriver(false);
+    setNoWa("");
   }
 
   const paymentMethods = [
@@ -96,7 +136,7 @@ export default function Pesan() {
 
   const method = paymentMethods.find((m) => m.id === selectedPayment);
 
-  
+  // ── SUCCESS ──────────────────────────────────────────────
   if (step === "success") {
     return (
       <>
@@ -123,6 +163,7 @@ export default function Pesan() {
             <p>Pesanan kamu sedang diproses. Tim kami akan menghubungi kamu segera.</p>
             <div className="success-detail">
               <div className="success-detail-row"><span>Nama</span><strong>{nama}</strong></div>
+              <div className="success-detail-row"><span>No. WhatsApp</span><strong>{noWa}</strong></div>
               {pesananList.map((p) => (
                 <div className="success-detail-row" key={p.mobil.id}>
                   <span>{p.mobil.name}</span>
@@ -131,9 +172,8 @@ export default function Pesan() {
               ))}
               <div className="success-detail-row"><span>Tanggal</span><strong>{tanggal}</strong></div>
               <div className="success-detail-row"><span>Durasi</span><strong>{durasi} hari</strong></div>
-              <div className="success-detail-row"><span>Driver</span><strong>{withDriver ? "Ya" : "Tidak"}</strong></div>
-              <div className="success-detail-row"><span>No. WhatsApp</span><strong>{noWa}</strong></div>
-              {withDriver && <div className="success-detail-row"><span>Lokasi Jemput</span><strong>{lokasi}</strong></div>}
+              <div className="success-detail-row"><span>Driver</span><strong>Termasuk</strong></div>
+              <div className="success-detail-row"><span>Lokasi Jemput</span><strong>{lokasi}</strong></div>
               <div className="success-detail-row"><span>Metode Bayar</span><strong>{method?.label}</strong></div>
               <div className="success-detail-row"><span>Total Bayar</span><strong>Rp {total.toLocaleString("id-ID")}</strong></div>
             </div>
@@ -145,6 +185,7 @@ export default function Pesan() {
     );
   }
 
+  // ── PAYMENT ──────────────────────────────────────────────
   if (step === "payment") {
     const banks = paymentMethods.filter((m) => m.type === "bank");
     const ewallets = paymentMethods.filter((m) => m.type === "ewallet");
@@ -276,7 +317,11 @@ export default function Pesan() {
               <div className="summary-mobil-list">
                 {pesananList.map((p) => (
                   <div className="summary-mobil-item" key={p.mobil.id}>
-                    <img src={p.mobil.image} alt={p.mobil.name} className="summary-mobil-img" />
+                    {p.mobil.image ? (
+                      <img src={p.mobil.image} alt={p.mobil.name} className="summary-mobil-img" />
+                    ) : (
+                      <div className="summary-mobil-img" style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.5rem" }}>🚗</div>
+                    )}
                     <div className="summary-mobil-info">
                       <strong>{p.mobil.name}</strong>
                       <span>{p.qty} unit × Rp {p.mobil.price.toLocaleString("id-ID")}/hari</span>
@@ -286,17 +331,11 @@ export default function Pesan() {
               </div>
               <div className="summary-rows">
                 <div className="summary-row"><span>Nama</span><strong>{nama}</strong></div>
-                <div className="summary-row"><span>No. WhatsApp</span><strong>{noWa || "-"}</strong></div>
+                <div className="summary-row"><span>No. WhatsApp</span><strong>{noWa}</strong></div>
                 <div className="summary-row"><span>Tanggal</span><strong>{tanggal}</strong></div>
                 <div className="summary-row"><span>Durasi</span><strong>{durasi} hari</strong></div>
-                <div className="summary-row"><span>Driver</span><strong>{withDriver ? "Ya" : "Tidak"}</strong></div>
-                {withDriver && <div className="summary-row"><span>Lokasi Jemput</span><strong>{lokasi}</strong></div>}
-                {withDriver && (
-                  <div className="summary-row">
-                    <span>Biaya Driver</span>
-                    <strong>Rp {(500000 * durasi).toLocaleString("id-ID")}</strong>
-                  </div>
-                )}
+                <div className="summary-row"><span>Lokasi Jemput</span><strong>{lokasi}</strong></div>
+                <div className="summary-row"><span>Biaya Driver</span><strong>Rp {driverFee.toLocaleString("id-ID")}</strong></div>
                 <div className="summary-divider" />
               </div>
               <div className="summary-total">
@@ -313,6 +352,7 @@ export default function Pesan() {
     );
   }
 
+  // ── FORM ──────────────────────────────────────────────
   return (
     <>
       <style>{`
@@ -328,11 +368,10 @@ export default function Pesan() {
         .form-section { background: #fff; border-radius: 20px; padding: 1.75rem; border: 1px solid rgba(26,63,168,0.08); }
         .form-section-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0 0 1.25rem; display: flex; align-items: center; gap: 8px; }
         .form-section-title span { width: 28px; height: 28px; background: linear-gradient(135deg, #1a3fa8, #8b3cc4); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 13px; color: #fff; font-weight: 700; flex-shrink: 0; }
-
-        /* Mobil List */
         .mobil-list { display: flex; flex-direction: column; gap: 10px; }
         .mobil-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 1.5px solid #e0e4f0; border-radius: 14px; background: #fafbff; }
         .mobil-item-img { width: 72px; height: 50px; object-fit: contain; background: linear-gradient(135deg, #e8eeff, #f0e8ff); border-radius: 8px; flex-shrink: 0; }
+        .mobil-item-img-placeholder { width: 72px; height: 50px; background: linear-gradient(135deg, #e8eeff, #f0e8ff); border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
         .mobil-item-info { flex: 1; }
         .mobil-item-info strong { display: block; font-size: 14px; font-weight: 700; color: #1a1a2e; }
         .mobil-item-info span { font-size: 12px; color: #888; }
@@ -344,21 +383,26 @@ export default function Pesan() {
         .btn-remove-mobil:hover { background: rgba(239,68,68,0.15); }
         .btn-add-mobil { display: flex; align-items: center; gap: 6px; background: rgba(26,63,168,0.06); color: #1a3fa8; border: 1.5px dashed rgba(26,63,168,0.25); border-radius: 12px; padding: 10px 16px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.15s; width: 100%; justify-content: center; }
         .btn-add-mobil:hover { background: rgba(26,63,168,0.1); }
-
-        /* Add mobil modal */
         .add-mobil-overlay { position: fixed; inset: 0; background: rgba(10,15,40,0.5); backdrop-filter: blur(4px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem; }
-        .add-mobil-card { background: #fff; border-radius: 20px; width: 100%; max-width: 420px; padding: 1.75rem; box-shadow: 0 24px 64px rgba(0,0,0,0.2); }
-        .add-mobil-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0 0 1.25rem; }
-        .add-mobil-list { display: flex; flex-direction: column; gap: 8px; }
+        .add-mobil-card { background: #fff; border-radius: 20px; width: 100%; max-width: 420px; padding: 1.75rem; box-shadow: 0 24px 64px rgba(0,0,0,0.2); max-height: 80vh; display: flex; flex-direction: column; }
+        .add-mobil-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0 0 1.25rem; flex-shrink: 0; }
+        .add-mobil-list { display: flex; flex-direction: column; gap: 8px; overflow-y: auto; flex: 1; }
         .add-mobil-item { display: flex; align-items: center; gap: 12px; padding: 12px; border: 1.5px solid #e0e4f0; border-radius: 12px; cursor: pointer; background: #fafbff; transition: border-color 0.2s, background 0.2s; }
         .add-mobil-item:hover { border-color: #1a3fa8; background: rgba(26,63,168,0.04); }
         .add-mobil-img { width: 64px; height: 44px; object-fit: contain; background: linear-gradient(135deg, #e8eeff, #f0e8ff); border-radius: 8px; flex-shrink: 0; }
+        .add-mobil-img-placeholder { width: 64px; height: 44px; background: linear-gradient(135deg, #e8eeff, #f0e8ff); border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
         .add-mobil-info strong { display: block; font-size: 13px; font-weight: 700; color: #1a1a2e; }
         .add-mobil-info span { font-size: 12px; color: #888; }
-        .add-mobil-price { font-size: 13px; font-weight: 700; color: #1a3fa8; white-space: nowrap; }
-        .btn-close-add { margin-top: 12px; width: 100%; background: #f0f2f8; border: none; border-radius: 10px; padding: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: #555; font-family: 'Plus Jakarta Sans', sans-serif; }
-
-        /* Form fields */
+        .add-mobil-price { font-size: 13px; font-weight: 700; color: #1a3fa8; white-space: nowrap; margin-left: auto; }
+        .btn-close-add { margin-top: 12px; width: 100%; background: #f0f2f8; border: none; border-radius: 10px; padding: 10px; font-size: 14px; font-weight: 600; cursor: pointer; color: #555; font-family: 'Plus Jakarta Sans', sans-serif; flex-shrink: 0; }
+        .add-mobil-loading { display: flex; align-items: center; justify-content: center; padding: 2rem; gap: 10px; color: #888; font-size: 14px; }
+        .add-mobil-empty { text-align: center; padding: 2rem; color: #aaa; font-size: 13px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 18px; height: 18px; border: 2px solid #e0e4f0; border-top-color: #1a3fa8; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        .driver-info-box { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: rgba(26,63,168,0.05); border: 1.5px solid rgba(26,63,168,0.15); border-radius: 12px; }
+        .driver-info-icon { font-size: 24px; flex-shrink: 0; }
+        .driver-info-text strong { display: block; font-size: 14px; font-weight: 700; color: #1a1a2e; }
+        .driver-info-text span { font-size: 12px; color: #666; }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
         .form-field { display: flex; flex-direction: column; gap: 6px; }
         .form-field.full { grid-column: 1 / -1; }
@@ -370,16 +414,6 @@ export default function Pesan() {
         .durasi-btn { width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid #e0e4f0; background: #f8f9ff; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: #1a3fa8; font-weight: 700; transition: background 0.15s; flex-shrink: 0; }
         .durasi-btn:hover { background: rgba(26,63,168,0.08); border-color: #1a3fa8; }
         .durasi-value { font-size: 16px; font-weight: 700; color: #1a1a2e; min-width: 60px; text-align: center; }
-        .driver-toggle { display: flex; align-items: center; justify-content: space-between; padding: 14px; background: #f8f9ff; border-radius: 12px; border: 1.5px solid #e0e4f0; cursor: pointer; transition: border-color 0.2s; }
-        .driver-toggle.active { border-color: #1a3fa8; background: rgba(26,63,168,0.04); }
-        .driver-toggle-info strong { display: block; font-size: 14px; font-weight: 600; color: #1a1a2e; }
-        .driver-toggle-info span { font-size: 12px; color: #888; }
-        .toggle-switch { width: 44px; height: 24px; background: #d0d4e8; border-radius: 12px; position: relative; transition: background 0.2s; flex-shrink: 0; }
-        .toggle-switch.on { background: #1a3fa8; }
-        .toggle-knob { width: 18px; height: 18px; background: #fff; border-radius: 50%; position: absolute; top: 3px; left: 3px; transition: transform 0.2s; box-shadow: 0 1px 4px rgba(0,0,0,0.15); }
-        .toggle-switch.on .toggle-knob { transform: translateX(20px); }
-
-        /* Summary */
         .pesan-summary { background: #fff; border-radius: 20px; padding: 1.75rem; border: 1px solid rgba(26,63,168,0.08); position: sticky; top: 84px; }
         .summary-title { font-size: 15px; font-weight: 700; color: #1a1a2e; margin: 0 0 1.25rem; }
         .summary-mobil-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 1.25rem; }
@@ -400,7 +434,6 @@ export default function Pesan() {
         .btn-pesan-submit:hover { opacity: 0.9; transform: translateY(-1px); }
         .btn-pesan-submit:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
         .summary-note { font-size: 11px; color: #aaa; text-align: center; margin-top: 10px; line-height: 1.5; }
-
         @media (max-width: 1024px) {
           .pesan-body { grid-template-columns: 1fr; padding: 2rem; }
           .pesan-header { padding: 2rem; }
@@ -418,7 +451,7 @@ export default function Pesan() {
         <div className="pesan-body">
           <div className="pesan-form-wrap">
 
-            {/* 1. Mobil yang dipesan */}
+            {/* 1. Kendaraan */}
             <div className="form-section">
               <div className="form-section-title"><span>1</span>Kendaraan yang Dipesan</div>
               <div className="mobil-list">
@@ -429,7 +462,11 @@ export default function Pesan() {
                 )}
                 {pesananList.map((p) => (
                   <div className="mobil-item" key={p.mobil.id}>
-                    <img src={p.mobil.image} alt={p.mobil.name} className="mobil-item-img" />
+                    {p.mobil.image ? (
+                      <img src={p.mobil.image} alt={p.mobil.name} className="mobil-item-img" />
+                    ) : (
+                      <div className="mobil-item-img-placeholder">🚗</div>
+                    )}
                     <div className="mobil-item-info">
                       <strong>{p.mobil.name}</strong>
                       <span>{p.mobil.type} · Rp {p.mobil.price.toLocaleString("id-ID")}/hari</span>
@@ -442,12 +479,13 @@ export default function Pesan() {
                     <button className="btn-remove-mobil" onClick={() => removeMobil(p.mobil.id)}>✕</button>
                   </div>
                 ))}
-                <button className="btn-add-mobil" onClick={() => setShowAddMobil(true)}>
+                <button className="btn-add-mobil" onClick={openAddMobil}>
                   ＋ Tambah Kendaraan Lain
                 </button>
               </div>
             </div>
 
+            {/* 2. Data Pemesan */}
             <div className="form-section">
               <div className="form-section-title"><span>2</span>Data Pemesan</div>
               <div className="form-grid">
@@ -456,19 +494,16 @@ export default function Pesan() {
                   <input className="form-input" type="text" placeholder="Masukkan nama lengkap" value={nama} onChange={(e) => setNama(e.target.value)} />
                 </div>
                 <div className="form-field full">
-  <label>Nomor WhatsApp</label>
-  <input
-    className="form-input"
-    type="tel"
-    placeholder="08xxxxxxxxxx"
-    value={noWa}
-    onChange={(e) => {
-      const val = e.target.value.replace(/[^0-9]/g, "");
-      setNoWa(val);
-    }}
-    inputMode="numeric"
-  />
-</div>
+                  <label>Nomor WhatsApp</label>
+                  <input
+                    className="form-input"
+                    type="tel"
+                    placeholder="08xxxxxxxxxx"
+                    value={noWa}
+                    onChange={(e) => setNoWa(e.target.value.replace(/[^0-9]/g, ""))}
+                    inputMode="numeric"
+                  />
+                </div>
                 <div className="form-field">
                   <label>Tanggal Sewa</label>
                   <input className="form-input" type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} min={new Date().toISOString().split("T")[0]} />
@@ -481,30 +516,25 @@ export default function Pesan() {
                     <button className="durasi-btn" onClick={() => setDurasi(durasi + 1)}>+</button>
                   </div>
                 </div>
+                <div className="form-field full">
+                  <label>Lokasi Penjemputan</label>
+                  <input className="form-input" type="text" placeholder="Masukkan alamat penjemputan" value={lokasi} onChange={(e) => setLokasi(e.target.value)} />
+                </div>
               </div>
             </div>
 
             <div className="form-section">
-              <div className="form-section-title"><span>3</span>Layanan Driver</div>
-              <div className={`driver-toggle${withDriver ? " active" : ""}`} onClick={() => setWithDriver(!withDriver)}>
-                <div className="driver-toggle-info">
-                  <strong>Sewa dengan Driver</strong>
-                  <span>Ada Tambahan Biaya Jika Dengan Driver</span>
-                </div>
-                <div className={`toggle-switch${withDriver ? " on" : ""}`}>
-                  <div className="toggle-knob" />
+              <div className="driver-info-box">
+                <div className="driver-info-text">
+                  <strong>Semua Sewa Sudah Termasuk Driver</strong>
+                  <span>Biaya driver Rp {DRIVER_FEE_PER_HARI.toLocaleString("id-ID")}/hari sudah termasuk dalam total</span>
                 </div>
               </div>
-              {withDriver && (
-                <div className="form-field" style={{ marginTop: "14px" }}>
-                  <label>Lokasi Penjemputan</label>
-                  <input className="form-input" type="text" placeholder="Masukkan alamat penjemputan" value={lokasi} onChange={(e) => setLokasi(e.target.value)} />
-                </div>
-              )}
             </div>
 
           </div>
 
+          {/* Summary */}
           <div className="pesan-summary">
             <p className="summary-title">Ringkasan Pesanan</p>
             {pesananList.length === 0 ? (
@@ -513,7 +543,11 @@ export default function Pesan() {
               <div className="summary-mobil-list">
                 {pesananList.map((p) => (
                   <div className="summary-mobil-item" key={p.mobil.id}>
-                    <img src={p.mobil.image} alt={p.mobil.name} className="summary-mobil-img" />
+                    {p.mobil.image ? (
+                      <img src={p.mobil.image} alt={p.mobil.name} className="summary-mobil-img" />
+                    ) : (
+                      <div className="summary-mobil-img" style={{ display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.25rem" }}>🚗</div>
+                    )}
                     <div className="summary-mobil-info">
                       <strong>{p.mobil.name}</strong>
                       <span>{p.qty} unit × Rp {p.mobil.price.toLocaleString("id-ID")}/hari</span>
@@ -526,8 +560,8 @@ export default function Pesan() {
               <div className="summary-row"><span>Nama</span><strong>{nama || "-"}</strong></div>
               <div className="summary-row"><span>Tanggal</span><strong>{tanggal || "-"}</strong></div>
               <div className="summary-row"><span>Durasi</span><strong>{durasi} hari</strong></div>
-              <div className="summary-row"><span>Driver</span><strong>{withDriver ? "Ya" : "Tidak"}</strong></div>
-              {withDriver && <div className="summary-row"><span>Lokasi Jemput</span><strong>{lokasi || "-"}</strong></div>}
+              <div className="summary-row"><span>Lokasi Jemput</span><strong>{lokasi || "-"}</strong></div>
+              <div className="summary-row"><span>Biaya Driver</span><strong>Rp {driverFee.toLocaleString("id-ID")}</strong></div>
               <div className="summary-divider" />
             </div>
             <div className="summary-total">
@@ -536,7 +570,7 @@ export default function Pesan() {
             </div>
             <button
               className="btn-pesan-submit"
-              disabled={pesananList.length === 0 || !nama || !tanggal || !noWa || (withDriver && !lokasi)}
+              disabled={pesananList.length === 0 || !nama || !tanggal || !noWa || !lokasi}
               onClick={() => setStep("payment")}
             >
               Lanjut ke Pembayaran →
@@ -546,21 +580,38 @@ export default function Pesan() {
         </div>
       </div>
 
+      {/* Modal Tambah Kendaraan */}
       {showAddMobil && (
         <div className="add-mobil-overlay" onClick={(e) => e.target === e.currentTarget && setShowAddMobil(false)}>
           <div className="add-mobil-card">
             <p className="add-mobil-title">Pilih Kendaraan</p>
             <div className="add-mobil-list">
-              {allCars.map((car) => (
-                <div className="add-mobil-item" key={car.id} onClick={() => addMobil(car)}>
-                  <img src={car.image} alt={car.name} className="add-mobil-img" />
-                  <div className="add-mobil-info">
-                    <strong>{car.name}</strong>
-                    <span>{car.type} · {car.seats} Kursi</span>
-                  </div>
-                  <span className="add-mobil-price">Rp {car.price.toLocaleString("id-ID")}<small style={{ fontWeight: 400, color: "#888" }}>/hari</small></span>
+              {loadingCars ? (
+                <div className="add-mobil-loading">
+                  <div className="spinner" /> Memuat kendaraan...
                 </div>
-              ))}
+              ) : availableCars.length === 0 ? (
+                <div className="add-mobil-empty">Tidak ada kendaraan tersedia</div>
+              ) : (
+                availableCars
+                  .filter((car) => !pesananList.find((p) => p.mobil.id === car.id))
+                  .map((car) => (
+                    <div className="add-mobil-item" key={car.id} onClick={() => addMobil(car)}>
+                      {car.image ? (
+                        <img src={car.image} alt={car.name} className="add-mobil-img" />
+                      ) : (
+                        <div className="add-mobil-img-placeholder">🚗</div>
+                      )}
+                      <div className="add-mobil-info">
+                        <strong>{car.name}</strong>
+                        <span>{car.type} · {car.seats} Kursi</span>
+                      </div>
+                      <span className="add-mobil-price">
+                        Rp {car.price.toLocaleString("id-ID")}<small style={{ fontWeight: 400, color: "#888" }}>/hari</small>
+                      </span>
+                    </div>
+                  ))
+              )}
             </div>
             <button className="btn-close-add" onClick={() => setShowAddMobil(false)}>Batal</button>
           </div>

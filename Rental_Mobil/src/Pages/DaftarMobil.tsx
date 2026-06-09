@@ -396,10 +396,8 @@ export default function DaftarMobil() {
                       <div className="car-card-body">
                         <h3 className="car-card-name">{car.nama}</h3>
                         <div className="car-card-meta">
-                          <span>🪑 {car.kursi} Kursi</span>
-                          <span>⛽ Bensin</span>
-                          <span>❄️ AC</span>
-                          <span>📦 {car.unitTersedia} tersedia</span>
+                          <span> {car.kursi} Kursi</span>
+                          <span> {car.unitTersedia} tersedia</span>
                         </div>
                         <div className="car-card-footer">
                           <div className="car-card-price">
