@@ -4,16 +4,13 @@ import { useNavigate } from "react-router-dom";
 interface Mobil {
   id_mobil: number;
   nama: string;
-  tipe: string;
   harga: number;
-  kursi: number;
   totalUnit: number;
   unitTersedia: number;
   gambar?: string;
   tersedia: boolean;
 }
 
-const types = ["Semua", "MPV", "SUV", "Hatchback", "Van", "Sedan"];
 const priceRanges = [
   { label: "Semua Harga", min: 0, max: Infinity },
   { label: "< Rp 300.000", min: 0, max: 299999 },
@@ -25,7 +22,6 @@ export default function DaftarMobil() {
   const navigate = useNavigate();
   const [mobils, setMobils] = useState<Mobil[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeType, setActiveType] = useState("Semua");
   const [activePriceIdx, setActivePriceIdx] = useState(0);
 
   useEffect(() => {
@@ -45,10 +41,8 @@ export default function DaftarMobil() {
   }
 
   const filtered = mobils.filter((car) => {
-    const typeMatch = activeType === "Semua" || car.tipe === activeType;
     const range = priceRanges[activePriceIdx];
-    const priceMatch = car.harga >= range.min && car.harga <= range.max;
-    return typeMatch && priceMatch;
+    return car.harga >= range.min && car.harga <= range.max;
   });
 
   return (
@@ -138,36 +132,12 @@ export default function DaftarMobil() {
           white-space: nowrap;
         }
 
-        .filter-btn:hover {
-          border-color: #1a3fa8;
-          color: #1a3fa8;
-          background: rgba(26,63,168,0.04);
-        }
+        .filter-btn:hover { border-color: #1a3fa8; color: #1a3fa8; background: rgba(26,63,168,0.04); }
+        .filter-btn.active { background: linear-gradient(135deg, #1a3fa8, #8b3cc4); border-color: transparent; color: #fff; font-weight: 600; }
 
-        .filter-btn.active {
-          background: linear-gradient(135deg, #1a3fa8, #8b3cc4);
-          border-color: transparent;
-          color: #fff;
-          font-weight: 600;
-        }
+        .daftar-content { padding: 2.5rem 6rem; }
 
-        .filter-divider {
-          width: 1px;
-          height: 24px;
-          background: rgba(26,63,168,0.1);
-        }
-
-        .daftar-content {
-          padding: 2.5rem 6rem;
-        }
-
-        .daftar-count {
-          font-size: 13px;
-          color: #888;
-          margin-bottom: 1.5rem;
-          font-weight: 500;
-        }
-
+        .daftar-count { font-size: 13px; color: #888; margin-bottom: 1.5rem; font-weight: 500; }
         .daftar-count strong { color: #1a1a2e; }
 
         .car-grid {
@@ -185,11 +155,7 @@ export default function DaftarMobil() {
           cursor: pointer;
         }
 
-        .car-card:hover {
-          transform: translateY(-6px);
-          box-shadow: 0 16px 48px rgba(26,63,168,0.13);
-        }
-
+        .car-card:hover { transform: translateY(-6px); box-shadow: 0 16px 48px rgba(26,63,168,0.13); }
         .car-card.habis { opacity: 0.6; cursor: not-allowed; }
         .car-card.habis:hover { transform: none; box-shadow: none; }
 
@@ -204,32 +170,9 @@ export default function DaftarMobil() {
           overflow: hidden;
         }
 
-        .car-card-image img {
-          width: 85%;
-          height: 85%;
-          object-fit: contain;
-          transition: transform 0.3s ease;
-        }
-
+        .car-card-image img { width: 85%; height: 85%; object-fit: contain; transition: transform 0.3s ease; }
         .car-card:hover .car-card-image img { transform: scale(1.05); }
-
-        .car-card-image .no-img {
-          font-size: 4rem;
-          opacity: 0.3;
-        }
-
-        .car-type-badge {
-          position: absolute;
-          top: 12px; left: 12px;
-          background: rgba(255,255,255,0.88);
-          backdrop-filter: blur(6px);
-          border-radius: 8px;
-          padding: 4px 10px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #1a3fa8;
-          letter-spacing: 0.03em;
-        }
+        .car-card-image .no-img { font-size: 4rem; opacity: 0.3; }
 
         .car-habis-badge {
           position: absolute;
@@ -243,13 +186,7 @@ export default function DaftarMobil() {
         }
 
         .car-card-body { padding: 1.25rem; }
-
-        .car-card-name {
-          font-size: 16px;
-          font-weight: 700;
-          color: #1a1a2e;
-          margin: 0 0 4px;
-        }
+        .car-card-name { font-size: 16px; font-weight: 700; color: #1a1a2e; margin: 0 0 4px; }
 
         .car-card-meta {
           display: flex;
@@ -258,10 +195,7 @@ export default function DaftarMobil() {
           margin-bottom: 1rem;
         }
 
-        .car-card-meta span {
-          font-size: 12px;
-          color: #888;
-        }
+        .car-card-meta span { font-size: 12px; color: #888; }
 
         .car-card-footer {
           display: flex;
@@ -293,35 +227,12 @@ export default function DaftarMobil() {
         .btn-pesan:hover { opacity: 0.88; transform: translateY(-1px); }
         .btn-pesan:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-        .daftar-empty {
-          text-align: center;
-          padding: 5rem 0;
-          color: #aaa;
-        }
-
+        .daftar-empty { text-align: center; padding: 5rem 0; color: #aaa; }
         .daftar-empty p { font-size: 15px; margin-top: 8px; }
 
-        .loading-wrap {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding: 5rem 0;
-          color: #888;
-          font-size: 14px;
-          gap: 10px;
-        }
-
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-
-        .spinner {
-          width: 20px; height: 20px;
-          border: 2px solid #e0e4f0;
-          border-top-color: #1a3fa8;
-          border-radius: 50%;
-          animation: spin 0.7s linear infinite;
-        }
+        .loading-wrap { display: flex; align-items: center; justify-content: center; padding: 5rem 0; color: #888; font-size: 14px; gap: 10px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { width: 20px; height: 20px; border: 2px solid #e0e4f0; border-top-color: #1a3fa8; border-radius: 50%; animation: spin 0.7s linear infinite; }
 
         @media (max-width: 1024px) {
           .car-grid { grid-template-columns: repeat(2, 1fr); }
@@ -342,15 +253,6 @@ export default function DaftarMobil() {
         </div>
 
         <div className="daftar-filter-wrap">
-          <div className="filter-group">
-            <span className="filter-label">Tipe</span>
-            {types.map((t) => (
-              <button key={t} className={`filter-btn${activeType === t ? " active" : ""}`} onClick={() => setActiveType(t)}>
-                {t}
-              </button>
-            ))}
-          </div>
-          <div className="filter-divider" />
           <div className="filter-group">
             <span className="filter-label">Harga</span>
             {priceRanges.map((r, i) => (
@@ -388,7 +290,6 @@ export default function DaftarMobil() {
                         ) : (
                           <span className="no-img">🚗</span>
                         )}
-                        <div className="car-type-badge">{car.tipe}</div>
                         {(!car.tersedia || car.unitTersedia === 0) && (
                           <div className="car-habis-badge">Habis</div>
                         )}
@@ -396,12 +297,10 @@ export default function DaftarMobil() {
                       <div className="car-card-body">
                         <h3 className="car-card-name">{car.nama}</h3>
                         <div className="car-card-meta">
-                          <span> {car.kursi} Kursi</span>
-                          <span> {car.unitTersedia} tersedia</span>
+                          <span>{car.unitTersedia} unit tersedia</span>
                         </div>
                         <div className="car-card-footer">
                           <div className="car-card-price">
-                            <span>Mulai dari</span>
                             <div>
                               <strong>Rp {car.harga.toLocaleString("id-ID")}</strong>
                               <small> /hari</small>
@@ -415,10 +314,8 @@ export default function DaftarMobil() {
                                 mobil: {
                                   id: car.id_mobil,
                                   name: car.nama,
-                                  type: car.tipe,
                                   image: car.gambar || "",
                                   price: car.harga,
-                                  seats: car.kursi,
                                 }
                               }
                             })}

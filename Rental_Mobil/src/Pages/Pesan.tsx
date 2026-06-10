@@ -4,18 +4,16 @@ import { useLocation, useNavigate } from "react-router-dom";
 interface Mobil {
   id: number;
   name: string;
-  type: string;
+
   image: string;
   price: number;
-  seats: number;
+
 }
 
 interface MobilAPI {
   id_mobil: number;
   nama: string;
-  tipe: string;
   harga: number;
-  kursi: number;
   totalUnit: number;
   unitTersedia: number;
   gambar?: string;
@@ -66,10 +64,8 @@ export default function Pesan() {
         .map((m) => ({
           id: m.id_mobil,
           name: m.nama,
-          type: m.tipe,
           image: m.gambar || "",
           price: m.harga,
-          seats: m.kursi,
         }));
       setAvailableCars(mapped);
     } catch {
@@ -469,7 +465,7 @@ export default function Pesan() {
                     )}
                     <div className="mobil-item-info">
                       <strong>{p.mobil.name}</strong>
-                      <span>{p.mobil.type} · Rp {p.mobil.price.toLocaleString("id-ID")}/hari</span>
+                      <span>Rp {p.mobil.price.toLocaleString("id-ID")}/hari</span>
                     </div>
                     <div className="mobil-item-qty">
                       <button className="qty-btn" onClick={() => updateQty(p.mobil.id, -1)}>−</button>
@@ -523,8 +519,11 @@ export default function Pesan() {
               </div>
             </div>
 
+            {/* 3. Info Driver */}
             <div className="form-section">
+              <div className="form-section-title"><span>3</span>Layanan Driver</div>
               <div className="driver-info-box">
+                <div className="driver-info-icon">🧑‍✈️</div>
                 <div className="driver-info-text">
                   <strong>Semua Sewa Sudah Termasuk Driver</strong>
                   <span>Biaya driver Rp {DRIVER_FEE_PER_HARI.toLocaleString("id-ID")}/hari sudah termasuk dalam total</span>
@@ -604,7 +603,7 @@ export default function Pesan() {
                       )}
                       <div className="add-mobil-info">
                         <strong>{car.name}</strong>
-                        <span>{car.type} · {car.seats} Kursi</span>
+                        <span>{car.name}</span>
                       </div>
                       <span className="add-mobil-price">
                         Rp {car.price.toLocaleString("id-ID")}<small style={{ fontWeight: 400, color: "#888" }}>/hari</small>

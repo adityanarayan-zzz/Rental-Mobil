@@ -47,18 +47,16 @@ export const getMobilById = async (req: Request, res: Response) => {
 // CREATE
 export const createMobil = async (req: Request, res: Response) => {
   try {
-    const { nama, tipe, harga, kursi, totalUnit, gambar } = req.body;
+    const { nama, harga, totalUnit, gambar } = req.body;
 
-    if (!nama || !tipe || !harga || !kursi || !totalUnit) {
+    if (!nama || !harga || !totalUnit) {
       return res.status(400).json({ message: "Semua field wajib diisi" });
     }
 
     const mobil = await prisma.mobil.create({
       data: {
         nama,
-        tipe,
         harga: parseInt(harga),
-        kursi: parseInt(kursi),
         totalUnit: parseInt(totalUnit),
         unitTersedia: parseInt(totalUnit),
         gambar: gambar || null,
@@ -77,7 +75,7 @@ export const createMobil = async (req: Request, res: Response) => {
 export const updateMobil = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
-    const { nama, tipe, harga, kursi, totalUnit, gambar, tersedia } = req.body;
+    const { nama, harga, totalUnit, gambar, tersedia } = req.body;
 
     const existing = await prisma.mobil.findUnique({ where: { id_mobil: id } });
     if (!existing) return res.status(404).json({ message: "Mobil tidak ditemukan" });
@@ -89,9 +87,7 @@ export const updateMobil = async (req: Request, res: Response) => {
       where: { id_mobil: id },
       data: {
         nama: nama ?? existing.nama,
-        tipe: tipe ?? existing.tipe,
         harga: harga ? parseInt(harga) : existing.harga,
-        kursi: kursi ? parseInt(kursi) : existing.kursi,
         totalUnit: totalUnit ? parseInt(totalUnit) : existing.totalUnit,
         unitTersedia: newUnitTersedia,
         gambar: gambar !== undefined ? gambar : existing.gambar,

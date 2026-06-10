@@ -4,17 +4,14 @@ import { useNavigate } from "react-router-dom";
 interface Mobil {
   id_mobil: number;
   nama: string;
-  tipe: string;
   harga: number;
-  kursi: number;
   totalUnit: number;
   unitTersedia: number;
   gambar?: string;
   tersedia: boolean;
 }
 
-const TIPE_OPTIONS = ["MPV", "SUV", "Hatchback", "Van", "Sedan"];
-const emptyForm = { nama: "", tipe: "MPV", harga: 0, kursi: 5, totalUnit: 1, gambar: "" };
+const emptyForm = { nama: "", harga: 0, totalUnit: 1, gambar: "" };
 type ModalType = "add" | "edit" | "delete" | null;
 
 export default function AdminDashboard() {
@@ -25,10 +22,10 @@ export default function AdminDashboard() {
   const [selected, setSelected] = useState<Mobil | null>(null);
   const [form, setForm] = useState(emptyForm);
   const [search, setSearch] = useState("");
-  const [filterTipe, setFilterTipe] = useState("Semua");
   const [adminUser, setAdminUser] = useState<{ username: string } | null>(null);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [error, setError] = useState("");
+  const [uploadingImg, setUploadingImg] = useState(false);
 
   const token = localStorage.getItem("adminToken");
 
@@ -51,6 +48,29 @@ export default function AdminDashboard() {
     }
   }
 
+  async function handleFileUpload(file: File) {
+    setUploadingImg(true);
+    try {
+      const formData = new FormData();
+      formData.append("image", file);
+      const res = await fetch("http://localhost:3000/api/mobil/upload", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setForm((prev) => ({ ...prev, gambar: data.url }));
+      } else {
+        setError("Gagal upload gambar");
+      }
+    } catch {
+      setError("Gagal upload gambar");
+    } finally {
+      setUploadingImg(false);
+    }
+  }
+
   function handleLogout() {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminUser");
@@ -65,7 +85,7 @@ export default function AdminDashboard() {
 
   function openEdit(m: Mobil) {
     setSelected(m);
-    setForm({ nama: m.nama, tipe: m.tipe, harga: m.harga, kursi: m.kursi, totalUnit: m.totalUnit, gambar: m.gambar || "" });
+    setForm({ nama: m.nama, harga: m.harga, totalUnit: m.totalUnit, gambar: m.gambar || "" });
     setError("");
     setModal("edit");
   }
@@ -76,7 +96,7 @@ export default function AdminDashboard() {
   }
 
   async function handleAdd() {
-    if (!form.nama || !form.harga || !form.kursi || !form.totalUnit) {
+    if (!form.nama || !form.harga || !form.totalUnit) {
       setError("Semua field wajib diisi");
       return;
     }
@@ -99,7 +119,7 @@ export default function AdminDashboard() {
   }
 
   async function handleEdit() {
-    if (!form.nama || !form.harga || !form.kursi || !form.totalUnit) {
+    if (!form.nama || !form.harga || !form.totalUnit) {
       setError("Semua field wajib diisi");
       return;
     }
@@ -151,11 +171,9 @@ export default function AdminDashboard() {
     }
   }
 
-  const filtered = mobils.filter((m) => {
-    const matchSearch = m.nama.toLowerCase().includes(search.toLowerCase());
-    const matchTipe = filterTipe === "Semua" || m.tipe === filterTipe;
-    return matchSearch && matchTipe;
-  });
+  const filtered = mobils.filter((m) =>
+    m.nama.toLowerCase().includes(search.toLowerCase())
+  );
 
   const totalUnit = mobils.reduce((a, b) => a + b.totalUnit, 0);
   const unitTersedia = mobils.reduce((a, b) => a + b.unitTersedia, 0);
@@ -201,7 +219,6 @@ export default function AdminDashboard() {
         .admin-table-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .admin-search { padding: 8px 14px; border: 1.5px solid #e0e4f0; border-radius: 10px; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; color: #1a1a2e; background: #f8f9ff; outline: none; width: 200px; transition: border-color 0.2s; }
         .admin-search:focus { border-color: #1a3fa8; background: #fff; }
-        .admin-filter-select { padding: 8px 14px; border: 1.5px solid #e0e4f0; border-radius: 10px; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; color: #555; background: #f8f9ff; outline: none; cursor: pointer; }
         .admin-btn-add { background: linear-gradient(135deg, #1a3fa8, #8b3cc4); color: #fff; border: none; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s, transform 0.15s; box-shadow: 0 4px 12px rgba(26,63,168,0.25); }
         .admin-btn-add:hover { opacity: 0.9; transform: translateY(-1px); }
         .admin-table-wrap { overflow-x: auto; }
@@ -211,7 +228,6 @@ export default function AdminDashboard() {
         td { padding: 14px 16px; border-bottom: 1px solid #f0f2fa; color: #1a1a2e; vertical-align: middle; }
         tr:last-child td { border-bottom: none; }
         tr:hover td { background: #fafbff; }
-        .tipe-badge { background: rgba(26,63,168,0.08); color: #1a3fa8; font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
         .unit-control { display: flex; align-items: center; gap: 8px; }
         .unit-btn { width: 26px; height: 26px; border-radius: 6px; border: 1.5px solid #e0e4f0; background: #f8f9ff; font-size: 14px; font-weight: 700; color: #1a3fa8; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.15s, border-color 0.15s; }
         .unit-btn:hover { background: rgba(26,63,168,0.08); border-color: #1a3fa8; }
@@ -227,18 +243,16 @@ export default function AdminDashboard() {
         .btn-delete:hover { background: rgba(239,68,68,0.15); }
         .modal-overlay { position: fixed; inset: 0; background: rgba(10,15,40,0.5); backdrop-filter: blur(4px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1rem; animation: fadeIn 0.15s ease; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-        .modal-card { background: #fff; border-radius: 20px; width: 100%; max-width: 480px; padding: 2rem; box-shadow: 0 24px 64px rgba(0,0,0,0.2); animation: slideUp 0.2s ease; }
+        .modal-card { background: #fff; border-radius: 20px; width: 100%; max-width: 440px; padding: 2rem; box-shadow: 0 24px 64px rgba(0,0,0,0.2); animation: slideUp 0.2s ease; max-height: 90vh; overflow-y: auto; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .modal-title { font-size: 1.1rem; font-weight: 800; color: #1a1a2e; margin: 0 0 1.25rem; }
-        .modal-form { display: flex; flex-direction: column; gap: 12px; }
-        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .modal-form { display: flex; flex-direction: column; gap: 14px; }
         .modal-field { display: flex; flex-direction: column; gap: 5px; }
-        .modal-field.full { grid-column: 1 / -1; }
         .modal-field label { font-size: 12px; font-weight: 600; color: #555; }
         .modal-input { padding: 10px 12px; border: 1.5px solid #e0e4f0; border-radius: 8px; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; color: #1a1a2e; background: #f8f9ff; outline: none; transition: border-color 0.2s; width: 100%; }
         .modal-input:focus { border-color: #1a3fa8; background: #fff; }
         .modal-error { background: #fff0f0; border: 1px solid #ffcccc; border-radius: 8px; padding: 10px 14px; font-size: 13px; color: #c0392b; }
-        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
         .btn-cancel { background: #f0f2f8; color: #555; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.15s; }
         .btn-cancel:hover { background: #e0e4f0; }
         .btn-confirm { background: linear-gradient(135deg, #1a3fa8, #8b3cc4); color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: opacity 0.2s; box-shadow: 0 4px 12px rgba(26,63,168,0.25); }
@@ -251,11 +265,13 @@ export default function AdminDashboard() {
         .loading-wrap { display: flex; align-items: center; justify-content: center; padding: 4rem; color: #888; font-size: 14px; gap: 10px; }
         @keyframes spin { to { transform: rotate(360deg); } }
         .spinner { width: 20px; height: 20px; border: 2px solid #e0e4f0; border-top-color: #1a3fa8; border-radius: 50%; animation: spin 0.7s linear infinite; }
+        .img-preview { width: 100%; height: 130px; object-fit: contain; border-radius: 10px; background: linear-gradient(135deg,#e8eeff,#f0e8ff); margin-bottom: 8px; }
+        .img-upload-btn { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 10px 14px; border: 1.5px dashed rgba(26,63,168,0.3); border-radius: 8px; background: #f8f9ff; cursor: pointer; font-size: 13px; color: #1a3fa8; font-weight: 600; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.15s; margin-bottom: 8px; width: 100%; }
+        .img-upload-btn:hover { background: rgba(26,63,168,0.06); }
         @media (max-width: 1024px) { .admin-stats { grid-template-columns: repeat(2, 1fr); } }
       `}</style>
 
       <div className="admin-page">
-        {/* SIDEBAR */}
         <aside className="admin-sidebar">
           <div className="admin-sidebar-logo">
             <img src="/src/assets/LOGO_PPS.jpeg" alt="PPS" />
@@ -288,53 +304,48 @@ export default function AdminDashboard() {
           </div>
         </aside>
 
-        {/* MAIN */}
         <main className="admin-main">
           <div className="admin-topbar">
             <div>
               <h1>Manajemen Armada</h1>
-              <p>Kelola data kendaraan rental PPS</p>
+              <p>Data kendaraan rental PPS</p>
             </div>
-          </div>
+          </div>  
 
-          {/* STATS */}
           <div className="admin-stats">
             <div className="admin-stat-card">
-              <div className="admin-stat-icon">🚗</div>
               <div className="admin-stat-label">Total Jenis Mobil</div>
               <div className="admin-stat-value">{mobils.length}</div>
               <div className="admin-stat-sub">jenis kendaraan</div>
             </div>
             <div className="admin-stat-card">
-              <div className="admin-stat-icon">🔢</div>
               <div className="admin-stat-label">Total Unit</div>
               <div className="admin-stat-value">{totalUnit}</div>
               <div className="admin-stat-sub">unit keseluruhan</div>
             </div>
             <div className="admin-stat-card">
-              <div className="admin-stat-icon">✅</div>
               <div className="admin-stat-label">Unit Tersedia</div>
               <div className="admin-stat-value" style={{ color: "#16a34a" }}>{unitTersedia}</div>
               <div className="admin-stat-sub">siap disewa</div>
             </div>
             <div className="admin-stat-card">
-              <div className="admin-stat-icon">🔑</div>
               <div className="admin-stat-label">Sedang Disewa</div>
               <div className="admin-stat-value" style={{ color: "#c0392b" }}>{sedangDisewa}</div>
               <div className="admin-stat-sub">unit aktif</div>
             </div>
           </div>
 
-          {/* TABLE */}
           <div className="admin-table-section">
             <div className="admin-table-header">
               <h2>Daftar Kendaraan</h2>
               <div className="admin-table-controls">
-                <input className="admin-search" type="text" placeholder="Cari nama mobil..." value={search} onChange={(e) => setSearch(e.target.value)} />
-                <select className="admin-filter-select" value={filterTipe} onChange={(e) => setFilterTipe(e.target.value)}>
-                  <option value="Semua">Semua Tipe</option>
-                  {TIPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
+                <input
+                  className="admin-search"
+                  type="text"
+                  placeholder="Cari nama mobil..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
                 <button className="admin-btn-add" onClick={openAdd}>＋ Tambah Mobil</button>
               </div>
             </div>
@@ -353,9 +364,7 @@ export default function AdminDashboard() {
                     <tr>
                       <th>No</th>
                       <th>Nama Kendaraan</th>
-                      <th>Tipe</th>
                       <th>Harga/Hari</th>
-                      <th>Kursi</th>
                       <th>Total Unit</th>
                       <th>Tersedia</th>
                       <th>Aksi</th>
@@ -366,9 +375,7 @@ export default function AdminDashboard() {
                       <tr key={m.id_mobil}>
                         <td style={{ color: "#aaa", fontWeight: 500 }}>{i + 1}</td>
                         <td style={{ fontWeight: 600 }}>{m.nama}</td>
-                        <td><span className="tipe-badge">{m.tipe}</span></td>
                         <td style={{ fontWeight: 700, color: "#1a3fa8" }}>Rp {m.harga.toLocaleString("id-ID")}</td>
-                        <td>{m.kursi} kursi</td>
                         <td>
                           <div className="unit-control">
                             <button className="unit-btn" onClick={() => handleUnitChange(m.id_mobil, -1)}>−</button>
@@ -383,8 +390,8 @@ export default function AdminDashboard() {
                         </td>
                         <td>
                           <div className="action-btns">
-                            <button className="btn-edit" onClick={() => openEdit(m)}> Edit</button>
-                            <button className="btn-delete" onClick={() => openDelete(m)}>Hapus</button>
+                            <button className="btn-edit" onClick={() => openEdit(m)}>✏️ Edit</button>
+                            <button className="btn-delete" onClick={() => openDelete(m)}>🗑️ Hapus</button>
                           </div>
                         </td>
                       </tr>
@@ -404,37 +411,91 @@ export default function AdminDashboard() {
             <h2 className="modal-title">{modal === "add" ? "Tambah Kendaraan Baru" : "Edit Kendaraan"}</h2>
             <div className="modal-form">
               {error && <div className="modal-error">{error}</div>}
-              <div className="modal-grid">
-                <div className="modal-field full">
-                  <label>Nama Kendaraan</label>
-                  <input className="modal-input" type="text" placeholder="Toyota Innova" value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} />
-                </div>
-                <div className="modal-field">
-                  <label>Tipe</label>
-                  <select className="modal-input" value={form.tipe} onChange={(e) => setForm({ ...form, tipe: e.target.value })}>
-                    {TIPE_OPTIONS.map((t) => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-                <div className="modal-field">
-                  <label>Jumlah Kursi</label>
-                  <input className="modal-input" type="number" min={1} value={form.kursi} onChange={(e) => setForm({ ...form, kursi: Number(e.target.value) })} />
-                </div>
-                <div className="modal-field">
-                  <label>Harga per Hari (Rp)</label>
-                  <input className="modal-input" type="number" min={0} value={form.harga} onChange={(e) => setForm({ ...form, harga: Number(e.target.value) })} />
-                </div>
-                <div className="modal-field">
-                  <label>Total Unit</label>
-                  <input className="modal-input" type="number" min={0} value={form.totalUnit} onChange={(e) => setForm({ ...form, totalUnit: Number(e.target.value) })} />
-                </div>
-                <div className="modal-field full">
-                  <label>URL Gambar (opsional)</label>
-                  <input className="modal-input" type="text" placeholder="https://..." value={form.gambar} onChange={(e) => setForm({ ...form, gambar: e.target.value })} />
-                </div>
+
+              <div className="modal-field">
+                <label>Nama Kendaraan</label>
+                <input
+                  className="modal-input"
+                  type="text"
+                  placeholder="Toyota Innova"
+                  value={form.nama}
+                  onChange={(e) => setForm({ ...form, nama: e.target.value })}
+                />
               </div>
+
+              <div className="modal-field">
+                <label>Harga per Hari (Rp)</label>
+                <input
+                  className="modal-input"
+                  type="number"
+                  min={0}
+                  placeholder="350000"
+                  value={form.harga}
+                  onChange={(e) => setForm({ ...form, harga: Number(e.target.value) })}
+                />
+              </div>
+
+              <div className="modal-field">
+                <label>Total Unit</label>
+                <input
+                  className="modal-input"
+                  type="number"
+                  min={1}
+                  placeholder="5"
+                  value={form.totalUnit}
+                  onChange={(e) => setForm({ ...form, totalUnit: Number(e.target.value) })}
+                />
+              </div>
+
+              <div className="modal-field">
+                <label>Gambar Kendaraan</label>
+                {form.gambar && (
+                  <img src={form.gambar} alt="preview" className="img-preview" />
+                )}
+                <label
+                  className="img-upload-btn"
+                  style={{ opacity: uploadingImg ? 0.6 : 1, cursor: uploadingImg ? "not-allowed" : "pointer" }}
+                >
+                  {uploadingImg ? (
+                    <><div className="spinner" style={{ width: 14, height: 14 }} /> Mengupload...</>
+                  ) : (
+                    <>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="16 16 12 12 8 16"></polyline>
+                        <line x1="12" y1="12" x2="12" y2="21"></line>
+                        <path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"></path>
+                      </svg>
+                      Pilih dari File
+                    </>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    disabled={uploadingImg}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileUpload(file);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+                <input
+                  className="modal-input"
+                  type="text"
+                  placeholder="Atau paste URL gambar..."
+                  value={form.gambar}
+                  onChange={(e) => setForm({ ...form, gambar: e.target.value })}
+                />
+              </div>
+
               <div className="modal-actions">
                 <button className="btn-cancel" onClick={() => setModal(null)}>Batal</button>
-                <button className="btn-confirm" disabled={submitLoading} onClick={modal === "add" ? handleAdd : handleEdit}>
+                <button
+                  className="btn-confirm"
+                  disabled={submitLoading || uploadingImg}
+                  onClick={modal === "add" ? handleAdd : handleEdit}
+                >
                   {submitLoading ? "Menyimpan..." : modal === "add" ? "Tambah" : "Simpan"}
                 </button>
               </div>
