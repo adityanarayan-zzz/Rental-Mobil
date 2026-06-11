@@ -28,4 +28,20 @@ model Mobil {
   unitTersedia Int      @default(0)
   gambar       String?
   tersedia     Boolean  @default(true)
+  transaksis   Transaksi[]
+}
+
+model Transaksi {
+  id_transaksi Int      @id @default(autoincrement())
+  nama_pemesan String
+  no_wa        String
+  tanggal_sewa DateTime
+  durasi       Int
+  lokasi       String
+  total_harga  Int
+  status       String @default("pending")
+  createdAt    DateTime @default(now())
+  mobil        Mobil @relation(fields: [id_mobil], references: [id_mobil])
+  id_mobil     Int
+  qty          Int @default(1)
 }

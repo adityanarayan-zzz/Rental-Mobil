@@ -5,7 +5,6 @@ import { uploadImage } from "../lib/supabaseStorage";
 
 export const upload = multer({ storage: multer.memoryStorage() });
 
-// UPLOAD IMAGE
 export const uploadMobilImage = async (req: Request, res: Response) => {
   try {
     if (!req.file) {
@@ -19,7 +18,6 @@ export const uploadMobilImage = async (req: Request, res: Response) => {
   }
 };
 
-// GET ALL
 export const getAllMobil = async (_req: Request, res: Response) => {
   try {
     const mobils = await prisma.mobil.findMany({
@@ -32,7 +30,6 @@ export const getAllMobil = async (_req: Request, res: Response) => {
   }
 };
 
-// GET BY ID
 export const getMobilById = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -44,7 +41,6 @@ export const getMobilById = async (req: Request, res: Response) => {
   }
 };
 
-// CREATE
 export const createMobil = async (req: Request, res: Response) => {
   try {
     const { nama, harga, totalUnit, gambar } = req.body;
@@ -71,7 +67,6 @@ export const createMobil = async (req: Request, res: Response) => {
   }
 };
 
-// UPDATE
 export const updateMobil = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -102,7 +97,6 @@ export const updateMobil = async (req: Request, res: Response) => {
   }
 };
 
-// UPDATE UNIT ONLY
 export const updateUnit = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);
@@ -129,7 +123,6 @@ export const updateUnit = async (req: Request, res: Response) => {
   }
 };
 
-// DELETE
 export const deleteMobil = async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string);

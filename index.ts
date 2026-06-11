@@ -5,6 +5,7 @@ import session from "express-session";
 import passport from "./lib/passport";
 import authRoutes from "./routes/authRoutes";
 import mobilRoutes from "./routes/mobilRoutes";
+import transaksiRoutes from "./routes/transaksiRoutes";
 
 dotenv.config();
 
@@ -23,7 +24,8 @@ app.use(passport.session());
 
 app.get("/", (_, res) => res.json({ message: "PPS Rental API is running 🚗" }));
 app.use("/api/auth", authRoutes);
-app.use("/api/mobil", mobilRoutes)
+app.use("/api/mobil", mobilRoutes);
+app.use("/api/transaksi", transaksiRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
