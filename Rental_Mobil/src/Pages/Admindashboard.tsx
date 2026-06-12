@@ -108,7 +108,10 @@ export default function AdminDashboard() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status }),
       });
-      if (res.ok) await fetchTransaksi();
+      if (res.ok) {
+        await fetchTransaksi();
+        await fetchMobil();
+      }
     } catch { console.error("Gagal update status"); }
     finally { setUpdatingStatus(null); }
   }
@@ -229,7 +232,7 @@ export default function AdminDashboard() {
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
         .admin-page { font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; background: #f0f2fa; display: flex; }
-        .admin-sidebar { width: 240px; background: linear-gradient(180deg, #0f1f5c 0%, #1a3fa8 100%); min-height: 100vh; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+        .admin-sidebar { width: 240px; background: linear-gradient(180deg, #c0392b 0%, #8b3cc4 25%, #3b5fd4 65%, #1a3fa8 100%); min-height: 100vh; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
         .admin-sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 1.5rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .admin-sidebar-logo img { width: 36px; height: 36px; object-fit: contain; border-radius: 8px; }
         .admin-sidebar-logo-text strong { display: block; font-size: 14px; font-weight: 700; color: #fff; }
@@ -264,7 +267,7 @@ export default function AdminDashboard() {
         .admin-search { padding: 8px 14px; border: 1.5px solid #e0e4f0; border-radius: 10px; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; color: #1a1a2e; background: #f8f9ff; outline: none; width: 200px; transition: border-color 0.2s; }
         .admin-search:focus { border-color: #1a3fa8; background: #fff; }
         .admin-filter-select { padding: 8px 14px; border: 1.5px solid #e0e4f0; border-radius: 10px; font-size: 13px; font-family: 'Plus Jakarta Sans', sans-serif; color: #555; background: #f8f9ff; outline: none; cursor: pointer; }
-        .admin-btn-add { background: linear-gradient(135deg, #1a3fa8, #8b3cc4); color: #fff; border: none; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s, transform 0.15s; box-shadow: 0 4px 12px rgba(26,63,168,0.25); }
+        .admin-btn-add { background: linear-gradient(135deg, #1a3fa8 0%, #8b3cc4 60%, #c0392b 100%); color: #fff; border: none; border-radius: 10px; padding: 9px 18px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; display: flex; align-items: center; gap: 6px; transition: opacity 0.2s, transform 0.15s; box-shadow: 0 4px 12px rgba(26,63,168,0.25); }
         .admin-btn-add:hover { opacity: 0.9; transform: translateY(-1px); }
         .admin-table-wrap { overflow-x: auto; }
         table { width: 100%; border-collapse: collapse; font-size: 14px; }
@@ -303,7 +306,7 @@ export default function AdminDashboard() {
         .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
         .btn-cancel { background: #f0f2f8; color: #555; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
         .btn-cancel:hover { background: #e0e4f0; }
-        .btn-confirm { background: linear-gradient(135deg, #1a3fa8, #8b3cc4); color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; box-shadow: 0 4px 12px rgba(26,63,168,0.25); }
+        .btn-confirm { background: linear-gradient(135deg, #1a3fa8 0%, #8b3cc4 60%, #c0392b 100%); color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; box-shadow: 0 4px 12px rgba(26,63,168,0.25); }
         .btn-confirm:hover { opacity: 0.9; }
         .btn-confirm:disabled { opacity: 0.6; cursor: not-allowed; }
         .btn-confirm-delete { background: linear-gradient(135deg, #dc2626, #b91c1c); color: #fff; border: none; border-radius: 10px; padding: 10px 20px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }

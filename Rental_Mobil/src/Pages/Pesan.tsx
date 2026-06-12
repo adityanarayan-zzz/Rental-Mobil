@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 interface Mobil {
@@ -23,7 +23,15 @@ interface PesananMobil {
   qty: number;
 }
 
-type Step = "form" | "payment" | "success";
+interface PaymentInfo {
+  payment_type: string;
+  va_number?: string | null;
+  bank?: string | null;
+  qr_url?: string | null;
+  expiry_time?: string | null;
+}
+
+type Step = "form" | "payment" | "waiting" | "success";
 
 const DRIVER_FEE_PER_HARI = 500000;
 
@@ -42,12 +50,17 @@ export default function Pesan() {
   const [lokasi, setLokasi] = useState("");
   const [noWa, setNoWa] = useState("");
   const [selectedPayment, setSelectedPayment] = useState<string | null>(null);
+  const [selectedBank, setSelectedBank] = useState<string>("bca");
   const [copied, setCopied] = useState(false);
   const [showAddMobil, setShowAddMobil] = useState(false);
   const [availableCars, setAvailableCars] = useState<Mobil[]>([]);
   const [loadingCars, setLoadingCars] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
+  const [orderId, setOrderId] = useState<string | null>(null);
+
+  const pollRef = useRef<number | null>(null);
 
   const driverFee = DRIVER_FEE_PER_HARI * durasi;
   const mobilTotal = pesananList.reduce((acc, p) => acc + p.mobil.price * p.qty * durasi, 0);
@@ -108,40 +121,67 @@ export default function Pesan() {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  async function handleKonfirmasiBayar() {
+  // Submit ke backend -> charge Midtrans
+  async function handleSubmitPayment() {
+    if (!selectedPayment) return;
     setSubmitting(true);
     setSubmitError("");
     try {
-      // Simpan setiap mobil sebagai transaksi terpisah
-      for (const p of pesananList) {
-        const res = await fetch("http://localhost:3000/api/transaksi", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            nama_pemesan: nama,
-            no_wa: noWa,
-            tanggal_sewa: tanggal,
-            durasi,
-            lokasi,
-            total_harga: Math.round((p.mobil.price * p.qty * durasi + driverFee / pesananList.length)),
-            id_mobil: p.mobil.id,
-            qty: p.qty,
-          }),
-        });
-        if (!res.ok) {
-          const data = await res.json();
-          setSubmitError(data.message || "Gagal menyimpan transaksi");
-          setSubmitting(false);
-          return;
-        }
+      const p = pesananList[0]; // simplifikasi: 1 transaksi untuk mobil pertama
+      const res = await fetch("http://localhost:3000/api/transaksi", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nama_pemesan: nama,
+          no_wa: noWa,
+          tanggal_sewa: tanggal,
+          durasi,
+          lokasi,
+          total_harga: total,
+          id_mobil: p.mobil.id,
+          qty: p.qty,
+          payment_method: selectedPayment,
+          bank: selectedPayment === "bank_transfer" ? selectedBank : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setSubmitError(data.message || "Gagal membuat transaksi");
+        setSubmitting(false);
+        return;
       }
-      setStep("success");
+      setPaymentInfo(data.payment);
+      setOrderId(data.transaksi.order_id);
+      setStep("waiting");
+      startPolling(data.transaksi.order_id);
     } catch {
       setSubmitError("Gagal terhubung ke server");
     } finally {
       setSubmitting(false);
     }
   }
+
+  function startPolling(order_id: string) {
+    if (pollRef.current) window.clearInterval(pollRef.current);
+    pollRef.current = window.setInterval(async () => {
+      try {
+        const res = await fetch(`http://localhost:3000/api/transaksi/status/${order_id}`);
+        const data = await res.json();
+        if (data.status_pembayaran === "settlement") {
+          if (pollRef.current) window.clearInterval(pollRef.current);
+          setStep("success");
+        }
+      } catch {
+        console.error("Gagal cek status pembayaran");
+      }
+    }, 5000);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (pollRef.current) window.clearInterval(pollRef.current);
+    };
+  }, []);
 
   function resetAll() {
     setStep("form");
@@ -153,19 +193,16 @@ export default function Pesan() {
     setSelectedPayment(null);
     setNoWa("");
     setSubmitError("");
+    setPaymentInfo(null);
+    setOrderId(null);
   }
 
-  const paymentMethods = [
-    { id: "bca", label: "BCA", type: "bank", icon: "🏦", detail: "1234567890", name: "PT PPS Rental Car" },
-    { id: "bni", label: "BNI", type: "bank", icon: "🏦", detail: "0987654321", name: "PT PPS Rental Car" },
-    { id: "mandiri", label: "Mandiri", type: "bank", icon: "🏦", detail: "1122334455", name: "PT PPS Rental Car" },
-    { id: "qris", label: "QRIS", type: "qris", icon: "▦", detail: "", name: "" },
-    { id: "ovo", label: "OVO", type: "ewallet", icon: "💜", detail: "08123456789", name: "PPS Rental" },
-    { id: "gopay", label: "GoPay", type: "ewallet", icon: "💙", detail: "08123456789", name: "PPS Rental" },
-    { id: "dana", label: "DANA", type: "ewallet", icon: "💛", detail: "08123456789", name: "PPS Rental" },
+  const bankOptions = [
+    { id: "bca", label: "BCA" },
+    { id: "bni", label: "BNI" },
+    { id: "bri", label: "BRI" },
+    { id: "permata", label: "Permata" },
   ];
-
-  const method = paymentMethods.find((m) => m.id === selectedPayment);
 
   const CSS = `
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -266,8 +303,11 @@ export default function Pesan() {
     .pay-detail-number span { font-size: 20px; font-weight: 800; color: #1a1a2e; letter-spacing: 0.05em; }
     .btn-copy { background: linear-gradient(135deg, #1a3fa8, #8b3cc4); color: #fff; border: none; border-radius: 8px; padding: 7px 14px; font-size: 12px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; }
     .pay-detail-name { font-size: 13px; color: #555; margin-top: 6px; }
+    .bank-select-group { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .bank-chip { border: 1.5px solid #e0e4f0; border-radius: 10px; padding: 8px 14px; font-size: 13px; font-weight: 600; color: #555; cursor: pointer; background: #fafbff; font-family: 'Plus Jakarta Sans', sans-serif; }
+    .bank-chip.selected { border-color: #1a3fa8; background: rgba(26,63,168,0.06); color: #1a3fa8; }
     .qris-box { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 1.5rem; }
-    .qris-placeholder { width: 160px; height: 160px; background: linear-gradient(135deg, #e8eeff, #f0e8ff); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 64px; border: 2px dashed rgba(26,63,168,0.2); }
+    .qris-img { width: 200px; height: 200px; object-fit: contain; border-radius: 12px; border: 1px solid #e0e4f0; }
     .qris-note { font-size: 12px; color: #888; text-align: center; line-height: 1.5; }
     .pay-right { background: #fff; border-radius: 20px; padding: 1.75rem; border: 1px solid rgba(26,63,168,0.08); position: sticky; top: 84px; }
     .btn-confirm-pay { background: linear-gradient(135deg, #1a3fa8 0%, #8b3cc4 100%); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; transition: opacity 0.2s; box-shadow: 0 4px 16px rgba(26,63,168,0.28); }
@@ -289,6 +329,7 @@ export default function Pesan() {
     .success-detail-row strong { color: #1a1a2e; }
     .btn-back { background: linear-gradient(135deg, #1a3fa8, #8b3cc4); color: #fff; border: none; border-radius: 12px; padding: 13px 28px; font-size: 15px; font-weight: 700; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; margin-bottom: 8px; }
     .btn-back-daftar { background: none; border: 1.5px solid #e0e4f0; border-radius: 12px; padding: 11px 28px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; width: 100%; color: #555; }
+    .waiting-icon { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem; font-size: 32px; background: rgba(234,179,8,0.1); }
     @media (max-width: 1024px) {
       .pesan-body, .pay-body { grid-template-columns: 1fr; padding: 2rem; }
       .pesan-header { padding: 2rem; }
@@ -306,8 +347,8 @@ export default function Pesan() {
           <div className="success-wrap">
             <div className="success-card">
               <div className="success-icon">✓</div>
-              <h2>Pesanan Dikonfirmasi!</h2>
-              <p>Pesanan kamu sudah tersimpan. Tim kami akan menghubungi kamu segera via WhatsApp.</p>
+              <h2>Pembayaran Berhasil!</h2>
+              <p>Pesanan kamu sudah dikonfirmasi. Tim kami akan menghubungi kamu segera via WhatsApp.</p>
               <div className="success-detail">
                 <div className="success-detail-row"><span>Nama</span><strong>{nama}</strong></div>
                 <div className="success-detail-row"><span>No. WhatsApp</span><strong>{noWa}</strong></div>
@@ -320,7 +361,7 @@ export default function Pesan() {
                 <div className="success-detail-row"><span>Tanggal</span><strong>{tanggal}</strong></div>
                 <div className="success-detail-row"><span>Durasi</span><strong>{durasi} hari</strong></div>
                 <div className="success-detail-row"><span>Lokasi Jemput</span><strong>{lokasi}</strong></div>
-                <div className="success-detail-row"><span>Metode Bayar</span><strong>{method?.label}</strong></div>
+                <div className="success-detail-row"><span>Order ID</span><strong>{orderId}</strong></div>
                 <div className="success-detail-row"><span>Total Bayar</span><strong>Rp {total.toLocaleString("id-ID")}</strong></div>
               </div>
               <button className="btn-back" onClick={resetAll}>Buat Pesanan Baru</button>
@@ -332,11 +373,59 @@ export default function Pesan() {
     );
   }
 
+  // ── WAITING PAYMENT ──────────────────────────────────────
+  if (step === "waiting") {
+    return (
+      <>
+        <style>{CSS}</style>
+        <div className="pesan-page">
+          <div className="success-wrap">
+            <div className="success-card">
+              <div className="waiting-icon">⏳</div>
+              <h2>Menunggu Pembayaran</h2>
+              <p>Selesaikan pembayaran sesuai instruksi di bawah. Halaman ini otomatis memeriksa status pembayaran.</p>
+
+              {paymentInfo?.payment_type === "bank_transfer" && paymentInfo.va_number && (
+                <div className="success-detail">
+                  <div className="success-detail-row">
+                    <span>Bank</span>
+                    <strong style={{ textTransform: "uppercase" }}>{paymentInfo.bank}</strong>
+                  </div>
+                  <div className="success-detail-row">
+                    <span>Nomor Virtual Account</span>
+                    <strong>{paymentInfo.va_number}</strong>
+                  </div>
+                  <div className="success-detail-row">
+                    <span>Total Bayar</span>
+                    <strong>Rp {total.toLocaleString("id-ID")}</strong>
+                  </div>
+                </div>
+              )}
+
+              {paymentInfo?.payment_type === "qris" && paymentInfo.qr_url && (
+                <div className="qris-box">
+                  <img src={paymentInfo.qr_url} alt="QRIS" className="qris-img" />
+                  <p className="qris-note">Scan QR code menggunakan aplikasi e-wallet atau m-banking apapun</p>
+                  <strong>Rp {total.toLocaleString("id-ID")}</strong>
+                </div>
+              )}
+
+              {paymentInfo?.va_number && (
+                <button className="btn-copy" style={{ width: "100%", padding: "12px", marginBottom: "12px" }} onClick={() => handleCopy(paymentInfo.va_number!)}>
+                  {copied ? "Tersalin!" : "Salin Nomor VA"}
+                </button>
+              )}
+
+              <p className="pay-note">Status akan otomatis terupdate setelah pembayaran diterima (cek tiap 5 detik)</p>
+            </div>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   // ── PAYMENT ──────────────────────────────────────────────
   if (step === "payment") {
-    const banks = paymentMethods.filter((m) => m.type === "bank");
-    const ewallets = paymentMethods.filter((m) => m.type === "ewallet");
-
     return (
       <>
         <style>{CSS}</style>
@@ -348,64 +437,55 @@ export default function Pesan() {
           <div className="pay-body">
             <div className="pay-left">
               <div className="pay-section">
-                <p className="pay-section-title">Transfer Bank</p>
-                <div className="pay-method-group">
-                  {banks.map((m) => (
-                    <div key={m.id} className={`pay-method${selectedPayment === m.id ? " selected" : ""}`} onClick={() => setSelectedPayment(m.id)}>
-                      <div className="pay-method-icon">🏦</div>
-                      <span className="pay-method-label">Bank {m.label}</span>
-                      <div className="pay-method-radio"><div className="pay-method-radio-dot" /></div>
-                    </div>
-                  ))}
+                <p className="pay-section-title">Transfer Bank (Virtual Account)</p>
+                <div
+                  className={`pay-method${selectedPayment === "bank_transfer" ? " selected" : ""}`}
+                  onClick={() => setSelectedPayment("bank_transfer")}
+                >
+                  <div className="pay-method-icon">🏦</div>
+                  <span className="pay-method-label">Virtual Account Bank</span>
+                  <div className="pay-method-radio"><div className="pay-method-radio-dot" /></div>
                 </div>
-                {method?.type === "bank" && (
-                  <div className="pay-detail-box">
-                    <p className="pay-detail-label">Nomor Rekening Bank {method.label}</p>
-                    <div className="pay-detail-number">
-                      <span>{method.detail}</span>
-                      <button className="btn-copy" onClick={() => handleCopy(method.detail)}>{copied ? "Tersalin!" : "Salin"}</button>
-                    </div>
-                    <p className="pay-detail-name">a.n. {method.name}</p>
+                {selectedPayment === "bank_transfer" && (
+                  <div className="bank-select-group">
+                    {bankOptions.map((b) => (
+                      <div
+                        key={b.id}
+                        className={`bank-chip${selectedBank === b.id ? " selected" : ""}`}
+                        onClick={() => setSelectedBank(b.id)}
+                      >
+                        {b.label}
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
+
               <div className="pay-section">
                 <p className="pay-section-title">QRIS</p>
-                <div className={`pay-method${selectedPayment === "qris" ? " selected" : ""}`} onClick={() => setSelectedPayment("qris")}>
+                <div
+                  className={`pay-method${selectedPayment === "qris" ? " selected" : ""}`}
+                  onClick={() => setSelectedPayment("qris")}
+                >
                   <div className="pay-method-icon">▦</div>
                   <span className="pay-method-label">QRIS (Semua Aplikasi)</span>
                   <div className="pay-method-radio"><div className="pay-method-radio-dot" /></div>
                 </div>
-                {selectedPayment === "qris" && (
-                  <div className="qris-box">
-                    <div className="qris-placeholder">▦</div>
-                    <p className="qris-note">QR Code akan tersedia setelah integrasi Midtrans.</p>
-                  </div>
-                )}
               </div>
+
               <div className="pay-section">
                 <p className="pay-section-title">E-Wallet</p>
-                <div className="pay-method-group">
-                  {ewallets.map((m) => (
-                    <div key={m.id} className={`pay-method${selectedPayment === m.id ? " selected" : ""}`} onClick={() => setSelectedPayment(m.id)}>
-                      <div className="pay-method-icon">{m.icon}</div>
-                      <span className="pay-method-label">{m.label}</span>
-                      <div className="pay-method-radio"><div className="pay-method-radio-dot" /></div>
-                    </div>
-                  ))}
+                <div
+                  className={`pay-method${selectedPayment === "gopay" ? " selected" : ""}`}
+                  onClick={() => setSelectedPayment("gopay")}
+                >
+                  <div className="pay-method-icon">💙</div>
+                  <span className="pay-method-label">GoPay</span>
+                  <div className="pay-method-radio"><div className="pay-method-radio-dot" /></div>
                 </div>
-                {method?.type === "ewallet" && (
-                  <div className="pay-detail-box">
-                    <p className="pay-detail-label">Nomor {method.label}</p>
-                    <div className="pay-detail-number">
-                      <span>{method.detail}</span>
-                      <button className="btn-copy" onClick={() => handleCopy(method.detail)}>{copied ? "Tersalin!" : "Salin"}</button>
-                    </div>
-                    <p className="pay-detail-name">a.n. {method.name}</p>
-                  </div>
-                )}
               </div>
             </div>
+
             <div className="pay-right">
               <p className="summary-title">Ringkasan Pesanan</p>
               <div className="summary-mobil-list">
@@ -440,12 +520,12 @@ export default function Pesan() {
               <button
                 className="btn-confirm-pay"
                 disabled={!selectedPayment || submitting}
-                onClick={handleKonfirmasiBayar}
+                onClick={handleSubmitPayment}
               >
-                {submitting ? "Menyimpan..." : "Saya Sudah Bayar"}
+                {submitting ? "Memproses..." : "Lanjutkan Pembayaran"}
               </button>
               <button className="btn-back-form" onClick={() => setStep("form")}>← Kembali ke Form</button>
-              <p className="pay-note">Pembayaran akan diverifikasi otomatis setelah integrasi Midtrans aktif</p>
+              <p className="pay-note">Pembayaran diproses melalui Midtrans (Sandbox)</p>
             </div>
           </div>
         </div>
@@ -495,6 +575,11 @@ export default function Pesan() {
                 ))}
                 <button className="btn-add-mobil" onClick={openAddMobil}>＋ Tambah Kendaraan Lain</button>
               </div>
+              {pesananList.length > 1 && (
+                <p style={{ fontSize: 12, color: "#ca8a04", marginTop: 10 }}>
+                  ⚠️ Sementara pembayaran hanya diproses untuk kendaraan pertama dalam daftar.
+                </p>
+              )}
             </div>
 
             <div className="form-section">

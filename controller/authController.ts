@@ -5,7 +5,6 @@ import prisma from "../lib/prisma";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
-// REGISTER
 export const register = async (req: Request, res: Response) => {
   try {
     const { username, password, email, NoWA } = req.body;

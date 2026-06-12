@@ -21,27 +21,34 @@ model User {
 }
 
 model Mobil {
-  id_mobil     Int      @id @default(autoincrement())
+  id_mobil     Int          @id @default(autoincrement())
   nama         String
   harga        Int
-  totalUnit    Int      @default(0)
-  unitTersedia Int      @default(0)
+  totalUnit    Int          @default(0)
+  unitTersedia Int          @default(0)
   gambar       String?
-  tersedia     Boolean  @default(true)
+  tersedia     Boolean      @default(true)
   transaksis   Transaksi[]
 }
 
 model Transaksi {
-  id_transaksi Int      @id @default(autoincrement())
-  nama_pemesan String
-  no_wa        String
-  tanggal_sewa DateTime
-  durasi       Int
-  lokasi       String
-  total_harga  Int
-  status       String @default("pending")
-  createdAt    DateTime @default(now())
-  mobil        Mobil @relation(fields: [id_mobil], references: [id_mobil])
-  id_mobil     Int
-  qty          Int @default(1)
+  id_transaksi      Int      @id @default(autoincrement())
+  order_id          String   @unique
+  nama_pemesan      String
+  no_wa             String
+  tanggal_sewa      DateTime
+  durasi            Int
+  lokasi            String
+  total_harga       Int
+  status            String   @default("pending")
+  payment_type      String?
+  status_pembayaran String   @default("pending")
+  va_number         String?
+  bank              String?
+  qr_url            String?
+  expiry_time       DateTime?
+  createdAt         DateTime @default(now())
+  mobil             Mobil    @relation(fields: [id_mobil], references: [id_mobil])
+  id_mobil          Int
+  qty               Int      @default(1)
 }

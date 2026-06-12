@@ -9,6 +9,8 @@ import transaksiRoutes from "./routes/transaksiRoutes";
 
 dotenv.config();
 
+console.log("SUPABASE_URL:", process.env.VITE_SUPABASE_URL);
+console.log("SUPABASE_KEY exists:", !!process.env.SUPABASE_KEY);
 const app = express();
 const PORT = process.env.PORT || 3000;
 
