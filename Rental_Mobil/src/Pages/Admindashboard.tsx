@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { generateWaLink, generateWaMessage } from "../utils/waTemplate";
 
 interface Mobil {
   id_mobil: number;
@@ -13,6 +14,7 @@ interface Mobil {
 
 interface Transaksi {
   id_transaksi: number;
+  order_id: string;
   nama_pemesan: string;
   no_wa: string;
   tanggal_sewa: string;
@@ -231,8 +233,8 @@ export default function AdminDashboard() {
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        .admin-page { font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; background: #f0f2fa; display: flex; }
-        .admin-sidebar { width: 240px; background: linear-gradient(180deg, #c0392b 0%, #8b3cc4 25%, #3b5fd4 65%, #1a3fa8 100%); min-height: 100vh; display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+        .admin-page { font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; background: #f0f2fa; display: flex; padding-top: 64px; }
+        .admin-sidebar { width: 240px; background: linear-gradient(180deg, #c0392b 0%, #8b3cc4 25%, #3b5fd4 65%, #1a3fa8 100%); min-height: calc(100vh - 64px); display: flex; flex-direction: column; position: fixed; top: 64px; left: 0; z-index: 100; }
         .admin-sidebar-logo { display: flex; align-items: center; gap: 10px; padding: 1.5rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.1); }
         .admin-sidebar-logo img { width: 36px; height: 36px; object-fit: contain; border-radius: 8px; }
         .admin-sidebar-logo-text strong { display: block; font-size: 14px; font-weight: 700; color: #fff; }
@@ -250,7 +252,7 @@ export default function AdminDashboard() {
         .admin-user-role { font-size: 11px; color: rgba(255,255,255,0.5); }
         .admin-btn-logout { width: 100%; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.15); border-radius: 8px; padding: 8px; font-size: 13px; font-weight: 600; cursor: pointer; font-family: 'Plus Jakarta Sans', sans-serif; transition: background 0.15s; }
         .admin-btn-logout:hover { background: rgba(255,255,255,0.15); color: #fff; }
-        .admin-main { margin-left: 240px; flex: 1; padding: 2rem; min-height: 100vh; }
+        .admin-main { margin-left: 240px; flex: 1; padding: 2rem; min-height: calc(100vh - 64px); }
         .admin-topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.75rem; }
         .admin-topbar h1 { font-size: 1.5rem; font-weight: 800; color: #1a1a2e; letter-spacing: -0.02em; }
         .admin-topbar p { font-size: 13px; color: #888; margin-top: 2px; }
@@ -327,8 +329,7 @@ export default function AdminDashboard() {
           <div className="admin-sidebar-logo">
             <img src="/src/assets/LOGO_PPS.jpeg" alt="PPS" />
             <div className="admin-sidebar-logo-text">
-              <strong>PPS Admin</strong>
-              <span>Dashboard</span>
+              <strong>Admin Dashboard</strong>
             </div>
           </div>
           <nav className="admin-sidebar-nav">
@@ -520,6 +521,28 @@ export default function AdminDashboard() {
                                   ✓ Selesai
                                 </button>
                               )}
+                              <a
+                                href={generateWaLink(
+                                  t.no_wa,
+                                  generateWaMessage({
+                                    nama: t.nama_pemesan,
+                                    noWa: t.no_wa,
+                                    namaMobil: t.mobil.nama,
+                                    qty: t.qty,
+                                    tanggalSewa: t.tanggal_sewa,
+                                    durasi: t.durasi,
+                                    lokasi: t.lokasi,
+                                    totalHarga: t.total_harga,
+                                    orderId: t.order_id,
+                                  })
+                                )}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="btn-status"
+                                style={{ background: "rgba(37,211,102,0.1)", color: "#128C7E", textDecoration: "none", display: "inline-flex", alignItems: "center" }}
+                              >
+                                💬 WA
+                              </a>
                               <button className="btn-delete" onClick={() => handleDeleteTransaksi(t.id_transaksi)}>🗑️</button>
                             </div>
                           </td>
