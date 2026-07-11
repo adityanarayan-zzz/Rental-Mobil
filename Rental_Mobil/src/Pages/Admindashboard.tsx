@@ -354,7 +354,6 @@ export default function AdminDashboard() {
         </aside>
 
         <main className="admin-main">
-          {/* STATS */}
           <div className="admin-stats">
             <div className="admin-stat-card">
               <div className="admin-stat-icon">🚗</div>
@@ -382,7 +381,6 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* TAB: MOBIL */}
           {activeTab === "mobil" && (
             <div className="admin-table-section">
               <div className="admin-table-header">
@@ -442,7 +440,7 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* TAB: PESANAN */}
+
           {activeTab === "pesanan" && (
             <div className="admin-table-section">
               <div className="admin-table-header">
@@ -557,7 +555,6 @@ export default function AdminDashboard() {
         </main>
       </div>
 
-      {/* MODAL ADD / EDIT */}
       {(modal === "add" || modal === "edit") && (
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setModal(null)}>
           <div className="modal-card">

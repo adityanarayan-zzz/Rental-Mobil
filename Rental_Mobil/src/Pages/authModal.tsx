@@ -491,7 +491,6 @@ export default function AuthModal({ onClose }: authModalProps) {
                     </button>
                   </div>
                 </div>
-                <div className="auth-forgot"><a href="#">Lupa password?</a></div>
                 <button type="submit" className="auth-btn-submit" disabled={loading}>
                   {loading ? "Memproses..." : "Masuk"}
                 </button>

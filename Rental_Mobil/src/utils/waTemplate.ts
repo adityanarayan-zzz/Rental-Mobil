@@ -1,5 +1,3 @@
-// Utility untuk generate template pesan WhatsApp konfirmasi pembayaran
-
 interface WaTemplateParams {
   nama: string;
   noWa: string;
@@ -32,31 +30,30 @@ export function generateWaMessage(params: WaTemplateParams): string {
 
   const totalFormatted = `Rp ${totalHarga.toLocaleString("id-ID")}`;
 
-  const message = `Halo *${nama}*! 👋
+  const message = `Halo *${nama}*! 
 
-Terima kasih telah melakukan pembayaran dan penyewaan di *PPS Rental Mobil*. Pesanan kamu sudah kami terima dan konfirmasi. 🚗✅
+Terima kasih telah melakukan pembayaran dan penyewaan di *PPS Rental Mobil*. Pesanan kamu sudah kami terima dan konfirmasi.
 
 *Rincian Pesanan*
-📋 Order ID: ${orderId}
-🚘 Kendaraan: ${namaMobil} (${qty} unit)
-📅 Tanggal Sewa: ${tanggalFormatted}
-⏱️ Durasi: ${durasi} hari
-📍 Lokasi Penjemputan: ${lokasi}
-🧑‍✈️ Layanan: Termasuk Driver
-💰 Total Pembayaran: ${totalFormatted}
+Order ID: ${orderId}
+Kendaraan: ${namaMobil} (${qty} unit)
+Tanggal Sewa: ${tanggalFormatted}
+Durasi: ${durasi} hari
+Lokasi Penjemputan: ${lokasi}
+Layanan: Termasuk Driver
+Total Pembayaran: ${totalFormatted}
 
-*Status Pembayaran: LUNAS ✅*
+*Status Pembayaran: LUNAS*
 
 Tim kami akan menghubungi kamu lebih lanjut untuk konfirmasi jadwal penjemputan. Jika ada pertanyaan, jangan ragu untuk membalas pesan ini.
 
-Terima kasih telah mempercayakan perjalanan kamu bersama *PPS Rental Mobil*! 🙏`;
+Terima kasih telah mempercayakan perjalanan kamu bersama *PPS Rental Mobil*!`;
 
   return message;
 }
 
-// Generate URL wa.me siap pakai
+
 export function generateWaLink(noWa: string, message: string): string {
-  // Normalisasi nomor: hapus karakter non-digit, ganti awalan 0 jadi 62
   let cleanNumber = noWa.replace(/\D/g, "");
   if (cleanNumber.startsWith("0")) {
     cleanNumber = "62" + cleanNumber.slice(1);
