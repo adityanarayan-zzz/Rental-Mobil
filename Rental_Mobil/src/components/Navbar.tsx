@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import AuthModal from "../Pages/authModal";
+import logo from "../assets/LOGO_PPS.jpeg"
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -373,7 +374,7 @@ export default function Navbar() {
 
       <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
         <Link className="navbar-logo" to="/">
-          <img src="/src/assets/LOGO_PPS.jpeg" alt="Logo PPS" className="navbar-logo-img" />
+          <img src={logo} alt="Logo PPS" className="navbar-logo-img" />
           <div className="navbar-logo-text">
             <span className="navbar-logo-title">PPS</span>
           </div>

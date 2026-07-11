@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { API_URL } from "../utils/api";
-
+import logo from "../assets/LOGO_PPS.jpeg"
 interface authModalProps {
   onClose: () => void;
 }
@@ -432,7 +432,7 @@ export default function AuthModal({ onClose }: authModalProps) {
           <button className="auth-close" onClick={onClose}>✕</button>
 
           <div className="auth-logo">
-            <img src="/src/assets/LOGO_PPS.jpeg" alt="PPS" />
+            <img src={logo} alt="PPS" />
             <div className="auth-logo-text">
               <strong>PPS</strong>
             </div>

@@ -461,17 +461,17 @@ export default function Home() {
 
         <section className="features">
           <div className="feature-card">
-            <div className="feature-icon" style={{ background: "rgba(26,63,168,0.08)" }}>🚗</div>
+            <div className="feature-icon" style={{ background: "rgba(26,63,168,0.08)" }}></div>
             <h3>Armada Lengkap</h3>
             <p>Pilihan mobil dari MPV, SUV, hingga sedan premium tersedia untuk semua kebutuhan perjalanan Anda.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon" style={{ background: "rgba(139,60,196,0.08)" }}>🛡️</div>
+            <div className="feature-icon" style={{ background: "rgba(139,60,196,0.08)" }}></div>
             <h3>Aman & Terjamin</h3>
             <p>Semua armada dilengkapi asuransi penuh dan melewati pengecekan rutin demi keselamatan Anda.</p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon" style={{ background: "rgba(192,57,43,0.08)" }}>⚡</div>
+            <div className="feature-icon" style={{ background: "rgba(192,57,43,0.08)" }}></div>
             <h3>Pemesanan Cepat</h3>
             <p>Pesan dalam hitungan menit, konfirmasi instan, dan mobil siap di depan pintu Anda tepat waktu.</p>
           </div>

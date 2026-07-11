@@ -336,10 +336,10 @@ export default function AdminDashboard() {
           <nav className="admin-sidebar-nav">
             <div className="admin-nav-label">Menu</div>
             <button className={`admin-nav-item${activeTab === "mobil" ? " active" : ""}`} onClick={() => setActiveTab("mobil")}>
-              <span className="admin-nav-item-icon">🚗</span>Manajemen Mobil
+              <span className="admin-nav-item-icon"></span>Manajemen Mobil
             </button>
             <button className={`admin-nav-item${activeTab === "pesanan" ? " active" : ""}`} onClick={() => { setActiveTab("pesanan"); fetchTransaksi(); }}>
-              <span className="admin-nav-item-icon">📋</span>Data Pesanan
+              <span className="admin-nav-item-icon"></span>Data Pesanan
             </button>
           </nav>
           <div className="admin-sidebar-footer">
@@ -357,25 +357,25 @@ export default function AdminDashboard() {
         <main className="admin-main">
           <div className="admin-stats">
             <div className="admin-stat-card">
-              <div className="admin-stat-icon">🚗</div>
+              <div className="admin-stat-icon"></div>
               <div className="admin-stat-label">Total Jenis Mobil</div>
               <div className="admin-stat-value">{mobils.length}</div>
               <div className="admin-stat-sub">jenis kendaraan</div>
             </div>
             <div className="admin-stat-card">
-              <div className="admin-stat-icon">🔢</div>
+              <div className="admin-stat-icon"></div>
               <div className="admin-stat-label">Total Unit</div>
               <div className="admin-stat-value">{totalUnit}</div>
               <div className="admin-stat-sub">unit keseluruhan</div>
             </div>
             <div className="admin-stat-card">
-              <div className="admin-stat-icon">✅</div>
+              <div className="admin-stat-icon"></div>
               <div className="admin-stat-label">Unit Tersedia</div>
               <div className="admin-stat-value" style={{ color: "#16a34a" }}>{unitTersedia}</div>
               <div className="admin-stat-sub">siap disewa</div>
             </div>
             <div className="admin-stat-card">
-              <div className="admin-stat-icon">📋</div>
+              <div className="admin-stat-icon"></div>
               <div className="admin-stat-label">Total Pesanan</div>
               <div className="admin-stat-value" style={{ color: "#1a3fa8" }}>{transaksis.length}</div>
               <div className="admin-stat-sub">semua transaksi</div>
@@ -395,7 +395,7 @@ export default function AdminDashboard() {
                 {loadingMobil ? (
                   <div className="loading-wrap"><div className="spinner" /> Memuat data...</div>
                 ) : filteredMobil.length === 0 ? (
-                  <div className="empty-state"><div style={{ fontSize: "3rem" }}>🚗</div><p>Tidak ada kendaraan ditemukan</p></div>
+                  <div className="empty-state"><div style={{ fontSize: "3rem" }}></div><p>Tidak ada kendaraan ditemukan</p></div>
                 ) : (
                   <table>
                     <thead>
@@ -612,7 +612,7 @@ export default function AdminDashboard() {
         <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setModal(null)}>
           <div className="modal-card">
             <h2 className="modal-title">Hapus Kendaraan</h2>
-            <div className="delete-warning">⚠️ Kamu akan menghapus <strong>{selected?.nama}</strong>. Tindakan ini tidak bisa dibatalkan.</div>
+            <div className="delete-warning"> Kamu akan menghapus <strong>{selected?.nama}</strong>. Tindakan ini tidak bisa dibatalkan.</div>
             <div className="modal-actions">
               <button className="btn-cancel" onClick={() => setModal(null)}>Batal</button>
               <button className="btn-confirm-delete" disabled={submitLoading} onClick={handleDelete}>
