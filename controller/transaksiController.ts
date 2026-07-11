@@ -121,7 +121,7 @@ export const createTransaksi = async (req: Request, res: Response) => {
 // MIDTRANS WEBHOOK / NOTIFICATION HANDLER
 export const midtransNotification = async (req: Request, res: Response) => {
   try {
-    const notification = await coreApi.transaction.notification(req.body);
+const notification = await (coreApi as any).transaction.notification(req.body);
 
     const orderId = notification.order_id;
     const transactionStatus = notification.transaction_status;
@@ -174,7 +174,7 @@ export const checkPaymentStatus = async (req: Request, res: Response) => {
     if (!transaksi) return res.status(404).json({ message: "Transaksi tidak ditemukan" });
 
     // Cek status terbaru dari Midtrans
-    const status = await coreApi.transaction.status(orderId);
+const status = await (coreApi as any).transactions.status(orderId);
 
     if (status.transaction_status !== transaksi.status_pembayaran) {
       let statusPembayaran = status.transaction_status;
