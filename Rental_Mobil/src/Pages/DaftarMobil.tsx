@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { API_URL } from "../utils/api";
 
 interface Mobil {
   id_mobil: number;
@@ -30,7 +31,7 @@ export default function DaftarMobil() {
 
   async function fetchMobil() {
     try {
-      const res = await fetch("http://localhost:3000/api/mobil");
+      const res = await fetch(`${API_URL}/api/mobil`);
       const data = await res.json();
       setMobils(data.mobils);
     } catch {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { API_URL } from "../utils/api";
 
 interface authModalProps {
   onClose: () => void;
@@ -33,7 +34,7 @@ export default function AuthModal({ onClose }: authModalProps) {
     const password = (form.elements.namedItem("password") as HTMLInputElement).value;
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/login", {
+      const res = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
@@ -84,7 +85,7 @@ export default function AuthModal({ onClose }: authModalProps) {
     const NoWA = (form.elements.namedItem("NoWA") as HTMLInputElement).value;
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/register", {
+      const res = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, email, password, NoWA }),
@@ -502,7 +503,7 @@ export default function AuthModal({ onClose }: authModalProps) {
 <button
   type="button"
   className="auth-btn-google"
-  onClick={() => window.location.href = "http://localhost:3000/api/auth/google"}
+  onClick={() => window.location.href = `${API_URL}/api/auth/google`}
 >
                   <svg width="18" height="18" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>

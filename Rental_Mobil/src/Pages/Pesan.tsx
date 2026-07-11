@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { API_URL } from "../utils/api";
 
 interface Mobil {
   id: number;
@@ -69,7 +70,7 @@ export default function Pesan() {
   async function fetchAvailableCars() {
     setLoadingCars(true);
     try {
-      const res = await fetch("http://localhost:3000/api/mobil");
+      const res = await fetch(`${API_URL}/api/mobil`);
       const data = await res.json();
       const mapped: Mobil[] = (data.mobils as MobilAPI[])
         .filter((m) => m.tersedia && m.unitTersedia > 0)
@@ -128,7 +129,7 @@ export default function Pesan() {
     setSubmitError("");
     try {
       const p = pesananList[0]; // simplifikasi: 1 transaksi untuk mobil pertama
-      const res = await fetch("http://localhost:3000/api/transaksi", {
+      const res = await fetch(`${API_URL}/api/transaksi`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -165,7 +166,7 @@ export default function Pesan() {
     if (pollRef.current) window.clearInterval(pollRef.current);
     pollRef.current = window.setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:3000/api/transaksi/status/${order_id}`);
+        const res = await fetch(`${API_URL}/api/transaksi/status/${order_id}`);
         const data = await res.json();
         if (data.status_pembayaran === "settlement") {
           if (pollRef.current) window.clearInterval(pollRef.current);

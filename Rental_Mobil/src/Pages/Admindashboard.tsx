@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateWaLink, generateWaMessage } from "../utils/waTemplate";
+import { API_URL } from "../utils/api";
 
 interface Mobil {
   id_mobil: number;
@@ -66,7 +67,7 @@ export default function AdminDashboard() {
 
   async function fetchMobil() {
     try {
-      const res = await fetch("http://localhost:3000/api/mobil");
+      const res = await fetch(`${API_URL}/api/mobil`);
       const data = await res.json();
       setMobils(data.mobils);
     } catch { console.error("Gagal fetch mobil"); }
@@ -76,7 +77,7 @@ export default function AdminDashboard() {
   async function fetchTransaksi() {
     setLoadingTransaksi(true);
     try {
-      const res = await fetch("http://localhost:3000/api/transaksi", {
+      const res = await fetch(`${API_URL}/api/transaksi`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -90,7 +91,7 @@ export default function AdminDashboard() {
     try {
       const formData = new FormData();
       formData.append("image", file);
-      const res = await fetch("http://localhost:3000/api/mobil/upload", {
+      const res = await fetch(`${API_URL}/api/mobil/upload`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
         body: formData,
@@ -105,7 +106,7 @@ export default function AdminDashboard() {
   async function handleUpdateStatus(id: number, status: string) {
     setUpdatingStatus(id);
     try {
-      const res = await fetch(`http://localhost:3000/api/transaksi/${id}/status`, {
+      const res = await fetch(`${API_URL}/api/transaksi/${id}/status`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ status }),
@@ -121,7 +122,7 @@ export default function AdminDashboard() {
   async function handleDeleteTransaksi(id: number) {
     if (!confirm("Hapus transaksi ini?")) return;
     try {
-      await fetch(`http://localhost:3000/api/transaksi/${id}`, {
+      await fetch(`${API_URL}/api/transaksi/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -148,7 +149,7 @@ export default function AdminDashboard() {
     if (!form.nama || !form.harga || !form.totalUnit) { setError("Semua field wajib diisi"); return; }
     setSubmitLoading(true);
     try {
-      const res = await fetch("http://localhost:3000/api/mobil", {
+      const res = await fetch(`${API_URL}/api/mobil`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -164,7 +165,7 @@ export default function AdminDashboard() {
     if (!form.nama || !form.harga || !form.totalUnit) { setError("Semua field wajib diisi"); return; }
     setSubmitLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/mobil/${selected?.id_mobil}`, {
+      const res = await fetch(`${API_URL}/api/mobil/${selected?.id_mobil}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(form),
@@ -179,7 +180,7 @@ export default function AdminDashboard() {
   async function handleDelete() {
     setSubmitLoading(true);
     try {
-      const res = await fetch(`http://localhost:3000/api/mobil/${selected?.id_mobil}`, {
+      const res = await fetch(`${API_URL}/api/mobil/${selected?.id_mobil}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -191,7 +192,7 @@ export default function AdminDashboard() {
 
   async function handleUnitChange(id: number, delta: number) {
     try {
-      const res = await fetch(`http://localhost:3000/api/mobil/${id}/unit`, {
+      const res = await fetch(`${API_URL}/api/mobil/${id}/unit`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ delta }),
