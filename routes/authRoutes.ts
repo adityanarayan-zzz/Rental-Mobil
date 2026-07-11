@@ -12,7 +12,6 @@ router.post("/register", register);
 router.post("/login", login);
 router.get("/me", authMiddleware, getMe);
 
-// Stateless: session: false karena tidak pakai express-session di Vercel
 router.get("/google",
   passport.authenticate("google", { scope: ["profile", "email"], session: false })
 );
