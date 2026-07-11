@@ -5,14 +5,14 @@ const cars = [
   {
     name: "Toyota Innova",
     type: "MPV Premium",
-    image: "/src/assets/innova.jpeg",
+    image: "/innova.jpeg",
     seats: 7,
     price: "Rp 450.000",
   },
   {
     name: "Toyota Avanza",
     type: "MPV Keluarga",
-    image: "/src/assets/avanza.png",
+    image: "/avanza.png",
     seats: 7,
     price: "Rp 300.000",
   },
