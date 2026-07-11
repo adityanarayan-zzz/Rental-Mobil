@@ -12,13 +12,13 @@ router.post("/register", register);
 router.post("/login", login);
 router.get("/me", authMiddleware, getMe);
 
-
+// Stateless: session: false karena tidak pakai express-session di Vercel
 router.get("/google",
-  passport.authenticate("google", { scope: ["profile", "email"] })
+  passport.authenticate("google", { scope: ["profile", "email"], session: false })
 );
 
 router.get("/google/callback",
-  passport.authenticate("google", { failureRedirect: `${FRONTEND_URL}?error=google_failed` }),
+  passport.authenticate("google", { session: false, failureRedirect: `${FRONTEND_URL}?error=google_failed` }),
   (req, res) => {
     const user = req.user as any;
 

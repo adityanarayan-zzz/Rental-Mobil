@@ -2,17 +2,18 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import session from "express-session";
-import passport from "./lib/passport";
-import authRoutes from "./routes/authRoutes";
-import mobilRoutes from "./routes/mobilRoutes";
-import transaksiRoutes from "./routes/transaksiRoutes";
+import passport from "../lib/passport";
+import authRoutes from "../routes/authRoutes";
+import mobilRoutes from "../routes/mobilRoutes";
+import transaksiRoutes from "../routes/transaksiRoutes";
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+
+app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 app.use(express.json());
 app.use(session({
   secret: process.env.JWT_SECRET || "secret",
@@ -27,6 +28,5 @@ app.use("/api/auth", authRoutes);
 app.use("/api/mobil", mobilRoutes);
 app.use("/api/transaksi", transaksiRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
+// PENTING: export default, TANPA app.listen()
+export default app;
