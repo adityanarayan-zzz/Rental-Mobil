@@ -43,6 +43,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/mobil", mobilRoutes);
 app.use("/api/transaksi", transaksiRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+// Export app untuk kebutuhan Vercel Serverless
+export default app;
