@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateWaLink, generateWaMessage } from "../utils/waTemplate";
 import { API_URL } from "../utils/api";
+import logo from "../assets/LOGO_PPS.jpeg"
 
 interface Mobil {
   id_mobil: number;
@@ -328,7 +329,7 @@ export default function AdminDashboard() {
       <div className="admin-page">
         <aside className="admin-sidebar">
           <div className="admin-sidebar-logo">
-            <img src="/src/assets/LOGO_PPS.jpeg" alt="PPS" />
+            <img src={logo} alt="PPS" />
             <div className="admin-sidebar-logo-text">
               <strong>Admin Dashboard</strong>
             </div>
