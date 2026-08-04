@@ -121,7 +121,8 @@ export const createTransaksi = async (req: Request, res: Response) => {
 // MIDTRANS WEBHOOK / NOTIFICATION HANDLER
 export const midtransNotification = async (req: Request, res: Response) => {
   try {
-const notification = await (coreApi as any).transaction.notification(req.body);
+    // Memperbaiki pemanggilan SDK Midtrans yang benar (transaction tanpa 's')
+    const notification = await (coreApi as any).transaction.notification(req.body);
 
     const orderId = notification.order_id;
     const transactionStatus = notification.transaction_status;
@@ -139,14 +140,16 @@ const notification = await (coreApi as any).transaction.notification(req.body);
     } else if (transactionStatus === "deny" || transactionStatus === "cancel" || transactionStatus === "expire") {
       statusPembayaran = transactionStatus;
 
-      // Kembalikan unit kalau pembayaran gagal/batal/expired
-      await prisma.mobil.update({
-        where: { id_mobil: transaksi.id_mobil },
-        data: {
-          unitTersedia: { increment: transaksi.qty },
-          tersedia: true,
-        },
-      });
+      // Kembalikan unit kalau pembayaran gagal/batal/expired (Mencegah pengembalian ganda jika status sebelumnya sudah batal)
+      if (transaksi.status_pembayaran !== "cancel" && transaksi.status_pembayaran !== "expire" && transaksi.status_pembayaran !== "deny") {
+        await prisma.mobil.update({
+          where: { id_mobil: transaksi.id_mobil },
+          data: {
+            unitTersedia: { increment: transaksi.qty },
+            tersedia: true,
+          },
+        });
+      }
     }
 
     await prisma.transaksi.update({
@@ -173,12 +176,12 @@ export const checkPaymentStatus = async (req: Request, res: Response) => {
     const transaksi = await prisma.transaksi.findUnique({ where: { order_id: orderId } });
     if (!transaksi) return res.status(404).json({ message: "Transaksi tidak ditemukan" });
 
-    // Cek status terbaru dari Midtrans
-const status = await (coreApi as any).transactions.status(orderId);
+    // FIX UTAMA: Ubah transactions menjadi transaction (tanpa s)
+    const status = await (coreApi as any).transaction.status(orderId);
 
-    if (status.transaction_status !== transaksi.status_pembayaran) {
+    if (status && status.transaction_status !== transaksi.status_pembayaran) {
       let statusPembayaran = status.transaction_status;
-      if ((status.transaction_status === "capture" || status.transaction_status === "settlement")) {
+      if (status.transaction_status === "capture" || status.transaction_status === "settlement") {
         statusPembayaran = "settlement";
       }
 
@@ -195,8 +198,10 @@ const status = await (coreApi as any).transactions.status(orderId);
 
     return res.json({ status_pembayaran: transaksi.status_pembayaran });
   } catch (error: any) {
-    console.error("CHECK STATUS ERROR:", error);
-    return res.status(500).json({ message: "Server error", detail: error.message });
+    // Kalau transaksi belum masuk ke database midtrans sama sekali, biarkan kembalikan status dari DB lokal
+    console.error("CHECK STATUS ERROR:", error.message);
+    const transaksi = await prisma.transaksi.findUnique({ where: { order_id: req.params.order_id } });
+    return res.json({ status_pembayaran: transaksi?.status_pembayaran || "pending" });
   }
 };
 

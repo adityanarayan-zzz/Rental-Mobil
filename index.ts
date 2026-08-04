@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import session from "express-session";
 import passport from "./lib/passport";
 import authRoutes from "./routes/authRoutes";
 import mobilRoutes from "./routes/mobilRoutes";
@@ -11,17 +10,22 @@ dotenv.config();
 
 const app = express();
 
-const FRONTEND_URL = process.env.FRONTEND_URL || "http://localhost:5173";
+// 1. FIX CORS: Hardcode domain live dan lokal biar aman di Vercel
+const allowedOrigins = [
+  "https://rent-pps.vercel.app", // Frontend Vercel lu
+  "http://localhost:5173"        // Frontend Lokal lu
+];
 
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
-app.use(express.json());
-app.use(session({
-  secret: process.env.JWT_SECRET || "secret",
-  resave: false,
-  saveUninitialized: false,
+app.use(cors({ 
+  origin: allowedOrigins, 
+  credentials: true 
 }));
+
+app.use(express.json());
+
+// 2. FIX SESSION: express-session & passport.session() dihapus 
+// karena di Vercel (serverless) kita pakai metode stateless (JWT)
 app.use(passport.initialize());
-app.use(passport.session());
 
 app.get("/", (_, res) => res.json({ message: "PPS Rental API is running 🚗" }));
 app.use("/api/auth", authRoutes);

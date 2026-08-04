@@ -381,7 +381,6 @@ export default function Home() {
       <div className="home">
         <section className="hero">
 
-          {/* Kiri - Slider Foto Mobil */}
           <div className="hero-image-wrap">
             <div className="hero-image-card">
               <div className="hero-badge">Armada Terbaik</div>
