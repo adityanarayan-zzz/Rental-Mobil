@@ -5,6 +5,7 @@ import Home from "./Pages/Home";
 import DaftarMobil from "./Pages/DaftarMobil";
 import Pesan from "./Pages/Pesan";
 import Admindashboard from "./Pages/Admindashboard";
+import Login from "./Pages/Login";
 
 function AppContent() {
   const navigate = useNavigate();
@@ -39,6 +40,7 @@ function AppContent() {
         <Route path="/daftar-mobil" element={<DaftarMobil />} />
         <Route path="/pesan" element={<Pesan />} />
         <Route path="/admin/dashboard" element={<Admindashboard />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </>
   );

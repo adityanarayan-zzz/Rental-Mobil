@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
-import AuthModal from "../Pages/authModal";
-import logo from "../assets/LOGO_PPS.jpeg"
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import logo from "../assets/LOGO_PPS.jpeg";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -11,11 +10,10 @@ const navLinks = [
 
 export default function Navbar() {
   const location = useLocation();
-  const [active, setActive] = useState("Home");
+  const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [showAuth, setShowAuth] = useState(false);
-  const [user, setUser] = useState<{username: string; email: string} | null>(null);
+  const [user, setUser] = useState<{ username: string; email: string } | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -31,6 +29,8 @@ export default function Navbar() {
   function handleLogout() {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
     setUser(null);
     window.location.href = "/";
   }
@@ -89,9 +89,7 @@ export default function Navbar() {
           transition: transform 0.3s ease;
         }
 
-        .navbar-logo:hover .navbar-logo-img {
-          transform: scale(1.05);
-        }
+        .navbar-logo:hover .navbar-logo-img { transform: scale(1.05); }
 
         .navbar-logo-text {
           display: flex;
@@ -156,21 +154,10 @@ export default function Navbar() {
         }
 
         .navbar-link:hover { color: #fff; }
-        .navbar-link:hover::before {
-          opacity: 1;
-          transform: scale(1);
-        }
+        .navbar-link:hover::before { opacity: 1; transform: scale(1); }
 
-        .navbar-link.active {
-          color: #fff;
-          font-weight: 600;
-        }
-
-        .navbar-link.active::before {
-          opacity: 1;
-          transform: scale(1);
-          background: rgba(255,255,255,0.18);
-        }
+        .navbar-link.active { color: #fff; font-weight: 600; }
+        .navbar-link.active::before { opacity: 1; transform: scale(1); background: rgba(255,255,255,0.18); }
 
         .navbar-link::after {
           content: '';
@@ -185,9 +172,7 @@ export default function Navbar() {
           transition: transform 0.25s ease;
         }
 
-        .navbar-link.active::after {
-          transform: translateX(-50%) scaleX(1);
-        }
+        .navbar-link.active::after { transform: translateX(-50%) scaleX(1); }
 
         .navbar-divider {
           width: 1px;
@@ -217,9 +202,7 @@ export default function Navbar() {
           border-color: rgba(255,255,255,0.6);
         }
 
-        .navbar-btn-login:active {
-          transform: scale(0.97);
-        }
+        .navbar-btn-login:active { transform: scale(0.97); }
 
         .navbar-user {
           display: flex;
@@ -244,11 +227,7 @@ export default function Navbar() {
           flex-shrink: 0;
         }
 
-        .navbar-user-name {
-          font-size: 14px;
-          font-weight: 600;
-          color: #fff;
-        }
+        .navbar-user-name { font-size: 14px; font-weight: 600; color: #fff; }
 
         .navbar-btn-logout {
           background: rgba(255,255,255,0.1);
@@ -288,16 +267,9 @@ export default function Navbar() {
           transition: all 0.25s ease;
         }
 
-        .navbar-hamburger.open span:nth-child(1) {
-          transform: translateY(7px) rotate(45deg);
-        }
-        .navbar-hamburger.open span:nth-child(2) {
-          opacity: 0;
-          transform: scaleX(0);
-        }
-        .navbar-hamburger.open span:nth-child(3) {
-          transform: translateY(-7px) rotate(-45deg);
-        }
+        .navbar-hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+        .navbar-hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+        .navbar-hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
 
         .navbar-mobile-menu {
           display: none;
@@ -305,10 +277,7 @@ export default function Navbar() {
           top: 64px;
           left: 0;
           right: 0;
-          background: linear-gradient(160deg,
-            rgba(26,63,168,0.75) 0%,
-            rgba(122,53,184,0.75) 60%,
-            rgba(176,48,32,0.75) 100%);
+          background: linear-gradient(160deg, rgba(26,63,168,0.75) 0%, rgba(122,53,184,0.75) 60%, rgba(176,48,32,0.75) 100%);
           backdrop-filter: blur(16px);
           -webkit-backdrop-filter: blur(16px);
           border-bottom: 1px solid rgba(255,255,255,0.12);
@@ -319,9 +288,7 @@ export default function Navbar() {
           box-shadow: 0 12px 32px rgba(0,0,0,0.2);
         }
 
-        .navbar-mobile-menu.open {
-          display: flex;
-        }
+        .navbar-mobile-menu.open { display: flex; }
 
         .navbar-mobile-link {
           color: rgba(255,255,255,0.85);
@@ -336,10 +303,11 @@ export default function Navbar() {
           text-align: left;
           width: 100%;
           transition: background 0.2s ease, color 0.2s ease;
+          text-decoration: none;
+          display: block;
         }
 
-        .navbar-mobile-link:hover,
-        .navbar-mobile-link.active {
+        .navbar-mobile-link:hover, .navbar-mobile-link.active {
           background: rgba(255,255,255,0.15);
           color: #fff;
         }
@@ -360,23 +328,20 @@ export default function Navbar() {
           transition: background 0.2s ease;
         }
 
-        .navbar-mobile-login:hover {
-          background: rgba(255,255,255,0.22);
-        }
+        .navbar-mobile-login:hover { background: rgba(255,255,255,0.22); }
 
         @media (max-width: 640px) {
-          .navbar-links,
-          .navbar-divider,
-          .navbar-btn-login { display: none; }
+          .navbar-links, .navbar-divider, .navbar-btn-login, .navbar-user { display: none; }
           .navbar-hamburger { display: flex; }
         }
       `}</style>
 
-      <nav className={`navbar ${scrolled ? "scrolled" : ""}`}>
+      <nav className={`navbar${scrolled ? " scrolled" : ""}`}>
         <Link className="navbar-logo" to="/">
           <img src={logo} alt="Logo PPS" className="navbar-logo-img" />
           <div className="navbar-logo-text">
             <span className="navbar-logo-title">PPS</span>
+            <span className="navbar-logo-sub">Rental Car</span>
           </div>
         </Link>
 
@@ -400,12 +365,12 @@ export default function Navbar() {
                 {user.username.charAt(0)}
               </div>
               <span className="navbar-user-name">{user.username}</span>
-              <button className="navbar-btn-logout" onClick={handleLogout}>
-                Keluar
-              </button>
+              <button className="navbar-btn-logout" onClick={handleLogout}>Keluar</button>
             </div>
           ) : (
-            <button className="navbar-btn-login" onClick={() => setShowAuth(true)}>Login</button>
+            <button className="navbar-btn-login" onClick={() => navigate("/login")}>
+              Login
+            </button>
           )}
         </div>
 
@@ -419,31 +384,24 @@ export default function Navbar() {
 
         <div className={`navbar-mobile-menu${menuOpen ? " open" : ""}`}>
           {navLinks.map((link) => (
-            <button
+            <Link
               key={link.label}
-              className={`navbar-mobile-link${active === link.label ? " active" : ""}`}
-              onClick={() => { setActive(link.label); setMenuOpen(false); }}
+              to={link.href}
+              className={`navbar-mobile-link${location.pathname === link.href ? " active" : ""}`}
+              onClick={() => setMenuOpen(false)}
             >
               {link.label}
-            </button>
+            </Link>
           ))}
           {user ? (
-            <button className="navbar-mobile-login" onClick={handleLogout}>
-              Keluar
-            </button>
+            <button className="navbar-mobile-login" onClick={handleLogout}>Keluar</button>
           ) : (
-            <button className="navbar-mobile-login" onClick={() => { setShowAuth(true); setMenuOpen(false); }}>
+            <button className="navbar-mobile-login" onClick={() => { navigate("/login"); setMenuOpen(false); }}>
               Login
             </button>
           )}
         </div>
       </nav>
-
-      {showAuth && <AuthModal onClose={() => {
-        setShowAuth(false);
-        const stored = localStorage.getItem("user");
-        if (stored) setUser(JSON.parse(stored));
-      }} />}
     </>
   );
 }
